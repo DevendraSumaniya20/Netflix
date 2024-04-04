@@ -17,8 +17,9 @@ import CustomButton from '../../components/CustomButton';
 import Color from '../../constants/Color';
 import CustomBorderComponent from '../../components/CustomBorderComponent';
 import {CheckBox} from '@rneui/themed';
+import navigationString from '../../constants/navigationString';
 
-const LoginScreen = () => {
+const LoginScreen = ({navigation}) => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const [checked, setChecked] = useState(false);
 
@@ -53,6 +54,7 @@ const LoginScreen = () => {
               placeholderTextColor={Color.WHITE}
               inputStyle={{
                 color: Color.WHITE,
+                width: '90%',
               }}
               rightIcon={secureTextEntry ? 'eye-off-outline' : 'eye-outline'}
               onPressRight={() => setSecureTextEntry(!secureTextEntry)}
@@ -124,7 +126,10 @@ const LoginScreen = () => {
             <Text style={{color: Color.WHITE, fontSize: scale(16)}}>
               New to Netflix?{' '}
             </Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate(navigationString.SIGNUPSCREEN);
+              }}>
               <Text
                 style={{
                   textDecorationLine: 'underline',

@@ -18,13 +18,7 @@ import Zocial from 'react-native-vector-icons/Zocial';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import CustomTheme from '../constants/CustomTheme';
 
-const CustomIcon = ({
-  name,
-  color = 'black',
-  size = scale(16),
-  type = 'Ionicons',
-}) => {
-  const {darkmodeColor} = CustomTheme();
+const CustomIcon = ({name, color, size = scale(16), type = 'Ionicons'}) => {
   let IconComponent;
 
   switch (type) {
@@ -81,7 +75,7 @@ const CustomIcon = ({
       IconComponent = Ionicons;
   }
 
-  return <IconComponent name={name} color={darkmodeColor} size={size} />;
+  return <IconComponent name={name} color={color} size={size} />;
 };
 
 export default CustomIcon;
