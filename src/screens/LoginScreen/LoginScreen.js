@@ -105,6 +105,7 @@ const LoginScreen = () => {
               size={26}
             />
             <TouchableOpacity
+              activeOpacity={0.8}
               onPress={() => {
                 toggleCheckbox();
               }}>
