@@ -1,0 +1,3 @@
+const MOVIEAPIKEY = '385172136143b414a4cbbf5d5ed188d8';
+
+export default MOVIEAPIKEY;

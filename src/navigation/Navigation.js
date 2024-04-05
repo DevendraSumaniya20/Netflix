@@ -1,13 +1,14 @@
-import {StyleSheet, Text, View} from 'react-native';
 import React from 'react';
+import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import navigationString from '../constants/navigationString';
 import LoginScreen from '../screens/LoginScreen/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen/SignUpScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen/ForgotPasswordScreen';
-import HomeScreen from '../screens/HomeScreen/HomeScreen';
-import {NavigationContainer} from '@react-navigation/native';
+import BottomTabNavigation from './BottomTabNavigation';
+
 const Stack = createNativeStackNavigator();
+
 const Navigation = () => {
   return (
     <NavigationContainer>
@@ -25,8 +26,9 @@ const Navigation = () => {
           component={ForgotPasswordScreen}
         />
         <Stack.Screen
-          name={navigationString.HOMESCREEN}
-          component={HomeScreen}
+          name={navigationString.BOTTOMTABNAVIGATION}
+          component={BottomTabNavigation}
+          options={{headerShown: false}}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -89,7 +89,8 @@ const LoginScreen = ({navigation}) => {
         console.log('Navigating to HomeScreen...');
         navigation.navigate(navigationString.HOMESCREEN);
       } else {
-        console.log('Access Token not found.');
+        console.log('Access Token not found. Navigating to LoginScreen...');
+        navigation.navigate(navigationString.LOGINSCREEN);
       }
     } catch (error) {
       console.error('Error checking tokens:', error);
@@ -114,7 +115,9 @@ const LoginScreen = ({navigation}) => {
 
       console.log('Access token set successfully.');
 
-      navigation.navigate(navigationString.HOMESCREEN);
+      navigation.navigate(navigationString.BOTTOMTABNAVIGATION, {
+        screen: navigationString.HOMESCREEN,
+      });
     } catch (error) {
       const errorMessage = error.message;
       console.error('Sign-in error:', errorMessage);
