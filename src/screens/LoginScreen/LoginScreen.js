@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import ImagePath from '../../constants/ImagePath';
 import {
   moderateScale,
@@ -18,10 +18,108 @@ import Color from '../../constants/Color';
 import CustomBorderComponent from '../../components/CustomBorderComponent';
 import {CheckBox} from '@rneui/themed';
 import navigationString from '../../constants/navigationString';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import {signInWithEmailAndPassword} from 'firebase/auth';
+import {auth} from '../../config/Firebase';
 
 const LoginScreen = ({navigation}) => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const [checked, setChecked] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  const handleEmailChange = useCallback(text => {
+    setEmail(text);
+  }, []);
+
+  const handlePasswordChange = useCallback(text => {
+    setPassword(text);
+  }, []);
+
+  useEffect(() => {
+    checkTokens();
+  }, []);
+
+  const validateInputs = useCallback(() => {
+    const emailRegex = /\S+@\S+\.\S+/;
+    const passwordRegex =
+      /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+    const emailMaxLength = 50;
+    const passwordMaxLength = 30;
+
+    setEmailError('');
+    setPasswordError('');
+
+    if (!email) {
+      setEmailError('Please enter Email Address');
+    } else if (!emailRegex.test(email)) {
+      setEmailError('Invalid Email Address');
+    } else if (email.length > emailMaxLength) {
+      setEmailError(
+        `Email Address must be less than ${emailMaxLength} characters`,
+      );
+    }
+
+    if (!password) {
+      setPasswordError('Please enter Password');
+    } else if (!passwordRegex.test(password)) {
+      setPasswordError(
+        'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one digit, and one special character',
+      );
+    } else if (password.length > passwordMaxLength) {
+      setPasswordError(
+        `Password must be less than ${passwordMaxLength} characters`,
+      );
+    }
+
+    if (!emailError && !passwordError) {
+      handleSignIn();
+    }
+  }, [email, password, emailError, passwordError, handleSignIn]);
+
+  const checkTokens = async () => {
+    try {
+      const accessToken = await AsyncStorage.getItem('accessToken');
+      console.log('Access Token:', accessToken);
+
+      if (accessToken) {
+        console.log('Navigating to HomeScreen...');
+        navigation.navigate(navigationString.HOMESCREEN);
+      } else {
+        console.log('Access Token not found.');
+      }
+    } catch (error) {
+      console.error('Error checking tokens:', error);
+    }
+  };
+
+  const handleSignIn = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      const user = userCredential.user;
+      console.log('User signed in:', user);
+
+      const idToken = await user.getIdToken();
+      console.log('ID token:', idToken);
+
+      await AsyncStorage.setItem('idToken', idToken);
+      await AsyncStorage.setItem('accessToken', idToken);
+
+      console.log('Access token set successfully.');
+
+      navigation.navigate(navigationString.HOMESCREEN);
+    } catch (error) {
+      const errorMessage = error.message;
+      console.error('Sign-in error:', errorMessage);
+    }
+  };
 
   const toggleCheckbox = () => setChecked(!checked);
 
@@ -45,27 +143,27 @@ const LoginScreen = ({navigation}) => {
             <CustomTextInput
               placeholder="Email"
               placeholderTextColor={Color.WHITE}
-              inputStyle={{}}
+              value={email}
+              onChangeText={handleEmailChange}
             />
           </View>
+          <Text style={styles.errorText}>{emailError}</Text>
           <View style={styles.inputContainerStyle}>
             <CustomTextInput
+              onChangeText={handlePasswordChange}
               placeholder="Password"
               placeholderTextColor={Color.WHITE}
-              inputStyle={{
-                color: Color.WHITE,
-                width: '90%',
-              }}
+              inputStyle={{color: Color.WHITE, width: '90%'}}
               rightIcon={secureTextEntry ? 'eye-off-outline' : 'eye-outline'}
               onPressRight={() => setSecureTextEntry(!secureTextEntry)}
               secureTextEntry={secureTextEntry}
               rightIconStyle={{color: Color.WHITE}}
             />
           </View>
-
+          <Text style={styles.errorText}>{passwordError}</Text>
           <CustomButton
             text="Sign in"
-            onPress={() => {}}
+            onPress={validateInputs}
             inlineStyle={{backgroundColor: Color.RED}}
             textStyle={{color: Color.WHITE}}
           />
@@ -78,7 +176,6 @@ const LoginScreen = ({navigation}) => {
               marginBottom: moderateVerticalScale(8),
             }}
           />
-
           <TouchableOpacity
             style={{
               alignSelf: 'center',
@@ -87,7 +184,6 @@ const LoginScreen = ({navigation}) => {
             }}>
             <Text style={styles.forgotpasswordTextStyle}>Forgot Password?</Text>
           </TouchableOpacity>
-
           <View
             style={{
               flexDirection: 'row',
@@ -106,17 +202,12 @@ const LoginScreen = ({navigation}) => {
               onPress={toggleCheckbox}
               size={26}
             />
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => {
-                toggleCheckbox();
-              }}>
+            <TouchableOpacity activeOpacity={0.8} onPress={toggleCheckbox}>
               <Text style={{color: Color.WHITE, fontSize: scale(16)}}>
                 Remember me
               </Text>
             </TouchableOpacity>
           </View>
-
           <View
             style={{
               alignSelf: 'flex-start',
@@ -127,9 +218,9 @@ const LoginScreen = ({navigation}) => {
               New to Netflix?{' '}
             </Text>
             <TouchableOpacity
-              onPress={() => {
-                navigation.navigate(navigationString.SIGNUPSCREEN);
-              }}>
+              onPress={() =>
+                navigation.navigate(navigationString.SIGNUPSCREEN)
+              }>
               <Text
                 style={{
                   textDecorationLine: 'underline',
@@ -152,10 +243,9 @@ const LoginScreen = ({navigation}) => {
             <Text style={{color: Color.WHITE, fontSize: scale(14)}}>
               This page is protected by Google reCAPTCHA to
             </Text>
-
             <View style={{flexDirection: 'row'}}>
               <Text style={{color: Color.WHITE, fontSize: scale(14)}}>
-                ensure you're not a bot.
+                ensure you're not a bot.{' '}
               </Text>
               <Text style={{color: '#0071EB', fontSize: scale(14)}}>
                 Learn more.
@@ -189,7 +279,13 @@ const styles = StyleSheet.create({
     borderColor: Color.WHITE,
     borderWidth: 1,
     borderRadius: moderateScale(12),
-    marginBottom: moderateVerticalScale(16),
+    marginBottom: moderateVerticalScale(8),
+  },
+  errorText: {
+    color: 'red',
+    fontSize: scale(12),
+    alignSelf: 'flex-start',
+    marginLeft: moderateScale(4),
   },
   orStyleText: {
     fontSize: scale(16),

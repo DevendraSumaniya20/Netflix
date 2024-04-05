@@ -1,5 +1,6 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import {
   moderateScale,
   moderateVerticalScale,
@@ -8,8 +9,9 @@ import {
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import Color from '../../constants/Color';
+import {createUserWithEmailAndPassword} from '@firebase/auth';
+import {auth} from '../../config/Firebase';
 import navigationString from '../../constants/navigationString';
-import auth from '@react-native-firebase/auth';
 
 const SignUpScreen = ({navigation}) => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -20,11 +22,33 @@ const SignUpScreen = ({navigation}) => {
 
   const handleEmailChange = useCallback(text => {
     setEmail(text);
+    setEmailError('');
   }, []);
 
   const handlePasswordChange = useCallback(text => {
     setPassword(text);
+    setPasswordError('');
   }, []);
+
+  useEffect(() => {
+    checkTokens(); // Call checkTokens function when component mounts
+  }, []);
+
+  const checkTokens = async () => {
+    try {
+      const accessToken = await AsyncStorage.getItem('accessToken');
+      console.log('Access Token:', accessToken);
+
+      if (accessToken) {
+        console.log('Navigating to HomeScreen...');
+        navigation.navigate(navigationString.HOMESCREEN);
+      } else {
+        console.log('Access Token not found.');
+      }
+    } catch (error) {
+      console.error('Error checking tokens:', error);
+    }
+  };
 
   const validateInputs = useCallback(() => {
     const emailRegex = /\S+@\S+\.\S+/;
@@ -32,9 +56,6 @@ const SignUpScreen = ({navigation}) => {
       /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
     const emailMaxLength = 50;
     const passwordMaxLength = 30;
-
-    setEmailError('');
-    setPasswordError('');
 
     if (!email) {
       setEmailError('Please enter Email Address');
@@ -58,25 +79,33 @@ const SignUpScreen = ({navigation}) => {
       );
     }
 
-    setTimeout(() => {
-      if (!emailError && !passwordError) {
-        handleSignUp();
-      }
-    }, 0); // This ensures that state is updated before executing handleSignUp
-  }, [email, password, emailError, passwordError]);
+    if (!emailError && !passwordError) {
+      handleSignUp();
+    }
+  }, [email, password, emailError, passwordError, handleSignUp]);
 
   const handleSignUp = useCallback(async () => {
+    if (emailError || passwordError) return;
+
     try {
-      const userCredential = await auth().createUserWithEmailAndPassword(
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
         email,
         password,
-      ); // Fix here
-      console.log('User signed up successfully:', userCredential.user.uid);
+      );
+      console.log('User signed up successfully:', userCredential.user);
+
+      const idToken = await userCredential.user.getIdToken();
+      await AsyncStorage.setItem('idToken', idToken);
+      await AsyncStorage.setItem('accessToken', idToken);
+
+      console.log('Access token set successfully.');
+
       navigation.navigate(navigationString.HOMESCREEN);
     } catch (error) {
-      console.error('Error signing up user:', error.message);
+      console.error('Error signing up:', error);
     }
-  }, [email, password, navigation]);
+  }, [email, password, emailError, passwordError, navigation]);
 
   return (
     <View style={styles.container}>
@@ -93,6 +122,7 @@ const SignUpScreen = ({navigation}) => {
         <Text style={styles.errorText}>{emailError}</Text>
         <View style={styles.inputContainerStyle}>
           <CustomTextInput
+            onChangeText={handlePasswordChange}
             placeholder="Password"
             placeholderTextColor={Color.WHITE}
             inputStyle={{
