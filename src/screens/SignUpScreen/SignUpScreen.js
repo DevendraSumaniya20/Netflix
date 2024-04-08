@@ -101,7 +101,7 @@ const SignUpScreen = ({navigation}) => {
 
       console.log('Access token set successfully.');
 
-      navigation.navigate(navigationString.HOMESCREEN);
+      navigation.navigate(navigationString.BOTTOMTABNAVIGATION);
     } catch (error) {
       console.error('Error signing up:', error);
     }

@@ -6,6 +6,7 @@ import LoginScreen from '../screens/LoginScreen/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen/SignUpScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen/ForgotPasswordScreen';
 import BottomTabNavigation from './BottomTabNavigation';
+import VideoScreen from '../screens/VideoScreen/VideoScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +30,11 @@ const Navigation = () => {
           name={navigationString.BOTTOMTABNAVIGATION}
           component={BottomTabNavigation}
           options={{headerShown: false}}
+        />
+
+        <Stack.Screen
+          name={navigationString.VIDEOSCREEN}
+          component={VideoScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

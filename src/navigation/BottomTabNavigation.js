@@ -14,8 +14,12 @@ import {moderateVerticalScale, scale} from 'react-native-size-matters';
 
 const BottomTabNavigation = () => {
   const Tab = createBottomTabNavigator();
+
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}>
       <Tab.Screen
         name={navigationString.HOMESCREEN}
         component={HomeScreen}
@@ -24,6 +28,9 @@ const BottomTabNavigation = () => {
             <MaterialIcons name="home" color={color} size={24} />
           ),
           tabBarLabel: 'Home',
+          tabBarStyle: {backgroundColor: Color.BLACK},
+          tabBarActiveTintColor: Color.RED,
+          tabBarInactiveTintColor: Color.GRAY,
         }}
       />
       <Tab.Screen
@@ -34,6 +41,9 @@ const BottomTabNavigation = () => {
             <Ionicons name="search" color={color} size={24} />
           ),
           tabBarLabel: 'Search',
+          tabBarStyle: {backgroundColor: Color.BLACK},
+          tabBarActiveTintColor: Color.RED,
+          tabBarInactiveTintColor: Color.GRAY,
         }}
       />
       <Tab.Screen
@@ -44,6 +54,9 @@ const BottomTabNavigation = () => {
             <MaterialIcons name="ondemand-video" color={color} size={24} />
           ),
           tabBarLabel: 'Coming Soon',
+          tabBarStyle: {backgroundColor: Color.BLACK},
+          tabBarActiveTintColor: Color.RED,
+          tabBarInactiveTintColor: Color.GRAY,
         }}
       />
       <Tab.Screen
@@ -54,6 +67,9 @@ const BottomTabNavigation = () => {
             <Octicons name="download" color={color} size={24} />
           ),
           tabBarLabel: 'Downloads',
+          tabBarStyle: {backgroundColor: Color.BLACK},
+          tabBarActiveTintColor: Color.RED,
+          tabBarInactiveTintColor: Color.GRAY,
         }}
       />
       <Tab.Screen
@@ -64,6 +80,9 @@ const BottomTabNavigation = () => {
             <MaterialIcons name="menu" color={color} size={24} />
           ),
           tabBarLabel: 'More',
+          tabBarStyle: {backgroundColor: Color.BLACK},
+          tabBarActiveTintColor: Color.RED,
+          tabBarInactiveTintColor: Color.GRAY,
         }}
       />
     </Tab.Navigator>

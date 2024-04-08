@@ -8,4 +8,5 @@ export default {
   DOWNLOADSCREEN: 'DownloadScreen',
   MORESCREEN: 'MoreScreen',
   BOTTOMTABNAVIGATION: 'BottomTabNavigation',
+  VIDEOSCREEN: 'VideoScreen',
 };

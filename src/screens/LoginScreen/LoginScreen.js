@@ -83,11 +83,11 @@ const LoginScreen = ({navigation}) => {
   const checkTokens = async () => {
     try {
       const accessToken = await AsyncStorage.getItem('accessToken');
-      console.log('Access Token:', accessToken);
+      // console.log('Access Token:', accessToken);
 
       if (accessToken) {
-        console.log('Navigating to HomeScreen...');
-        navigation.navigate(navigationString.HOMESCREEN);
+        // console.log('Navigating to HomeScreen...');
+        navigation.navigate(navigationString.BOTTOMTABNAVIGATION);
       } else {
         console.log('Access Token not found. Navigating to LoginScreen...');
         navigation.navigate(navigationString.LOGINSCREEN);
