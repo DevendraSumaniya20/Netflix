@@ -14,7 +14,7 @@ import {
   scale,
 } from 'react-native-size-matters';
 import Color from '../../constants/Color';
-import {fetchTopRatedTvShows} from '../../utils/Movie';
+import {fetchTopRatedTvShows, image500} from '../../utils/Movie';
 
 const CustomTopRatedTvShows = ({onPress}) => {
   const [loading, setLoading] = useState(true);
@@ -48,7 +48,7 @@ const CustomTopRatedTvShows = ({onPress}) => {
           }}>
           <Image
             source={{
-              uri: `https://image.tmdb.org/t/p/w185/${item.poster_path}`,
+              uri: image500(item.poster_path),
             }}
             style={styles.poster}
           />

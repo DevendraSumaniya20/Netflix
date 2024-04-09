@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
-import {fetchTrendingMovies} from '../../utils/Movie';
+import {fetchTrendingMovies, image500} from '../../utils/Movie';
 import {
   moderateScale,
   moderateVerticalScale,
@@ -45,7 +45,7 @@ const CustomTrendingMovies = ({onPress}) => {
           }}>
           <Image
             source={{
-              uri: `https://image.tmdb.org/t/p/w185/${item.poster_path}`,
+              uri: image500(item.poster_path),
             }}
             style={styles.poster}
           />

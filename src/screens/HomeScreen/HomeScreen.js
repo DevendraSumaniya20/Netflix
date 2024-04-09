@@ -26,8 +26,9 @@ import CustomTopRatedTvShows from '../../components/Tv/CustomTopRatedTvShows';
 import CustomNowPlayingMovies from '../../components/Movie/CustomNowPlayingMovies';
 import CustomPopularMovies from '../../components/Movie/CustomPopularMovies';
 import navigationString from '../../constants/navigationString';
+import {fetchMovieCredits, fetchMovieDetails} from '../../utils/Movie';
 
-const HomeScreen = ({navigation}) => {
+const HomeScreen = ({navigation, route}) => {
   useEffect(() => {}, []);
 
   return (
@@ -111,37 +112,49 @@ const HomeScreen = ({navigation}) => {
                 <Text style={styles.mainHearder}>Now Playing</Text>
                 <CustomNowPlayingMovies
                   onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {item});
+                    navigation.navigate(navigationString.VIDEOSCREEN, {
+                      itemId: item.id,
+                    });
                   }}
                 />
                 <Text style={styles.mainHearder}>Trending Movies</Text>
                 <CustomTrendingMovies
                   onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {item});
+                    navigation.navigate(navigationString.VIDEOSCREEN, {
+                      itemId: item.id,
+                    });
                   }}
                 />
                 <Text style={styles.mainHearder}>Trending TvShows</Text>
                 <CustomTrandingTvShow
                   onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {item});
+                    navigation.navigate(navigationString.VIDEOSCREEN, {
+                      itemId: item.id,
+                    });
                   }}
                 />
                 <Text style={styles.mainHearder}>Top Rated Movie</Text>
                 <CustomTopRatedMovies
                   onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {item});
+                    navigation.navigate(navigationString.VIDEOSCREEN, {
+                      itemId: item.id,
+                    });
                   }}
                 />
                 <Text style={styles.mainHearder}>Top Rated TvShows</Text>
                 <CustomTopRatedTvShows
                   onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {item});
+                    navigation.navigate(navigationString.VIDEOSCREEN, {
+                      itemId: item.id,
+                    });
                   }}
                 />
                 <Text style={styles.mainHearder}>Most Popular</Text>
                 <CustomPopularMovies
                   onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {item});
+                    navigation.navigate(navigationString.VIDEOSCREEN, {
+                      itemId: item.id,
+                    });
                   }}
                 />
               </View>

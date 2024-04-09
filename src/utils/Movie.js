@@ -1,6 +1,7 @@
 import {MOVIEAPIKEY} from '../config/APIkeys';
 
 import axios from 'axios';
+import ImagePath from '../constants/ImagePath';
 
 const apiBaseUrl = `https://api.themoviedb.org/3`;
 
@@ -10,11 +11,39 @@ const upcomingMoviesEndPoint = `${apiBaseUrl}/movie/upcoming?api_key=${MOVIEAPIK
 const popularMoviesEndPoint = `${apiBaseUrl}/movie/popular?api_key=${MOVIEAPIKEY}`;
 const nowPlayingMoviesEndPoint = `${apiBaseUrl}/movie/now_playing?api_key=${MOVIEAPIKEY}`;
 const movieRecommendationsMoviesEndPoint = `${apiBaseUrl}/movie/movie_id/recommendations?api_key=${MOVIEAPIKEY}`;
+const movieDetailsEndPoint = id =>
+  `${apiBaseUrl}/movie/${id}?api_key=${MOVIEAPIKEY}`;
+const movieCreditsEndPoint = id =>
+  `${apiBaseUrl}/movie/${id}/credits?api_key=${MOVIEAPIKEY}`;
 
+const movieSimilarEndPoint = id =>
+  `${apiBaseUrl}/movie/${id}/similar?api_key=${MOVIEAPIKEY}`;
+//
+
+//
 const trendingTvEndPoint = `${apiBaseUrl}/trending/tv/day?api_key=${MOVIEAPIKEY}`;
 const topRatedTvEndPoint = `${apiBaseUrl}/tv/top_rated?api_key=${MOVIEAPIKEY}`;
 const popularTvEndPoint = `${apiBaseUrl}/tv/popular?api_key=${MOVIEAPIKEY}`;
 const airingTodayEndPoint = `${apiBaseUrl}/tv/airing_today?api_key=${MOVIEAPIKEY}`;
+const tvDetailsEndPoint = id => `${apiBaseUrl}/tv/${id}?api_key=${MOVIEAPIKEY}`;
+const tvCreditsEndPoint = id =>
+  `${apiBaseUrl}/tv/${id}/credits?api_key=${MOVIEAPIKEY}`;
+
+const tvSimilarEndPoint = id =>
+  `${apiBaseUrl}/tv/${id}/similar?api_key=${MOVIEAPIKEY}`;
+
+export const image500 = path => {
+  return path ? `https://image.tmdb.org/t/p/w500/${path}` : null;
+};
+export const image342 = path => {
+  return path ? `https://image.tmdb.org/t/p/w342/${path}` : null;
+};
+
+export const image182 = path => {
+  return path ? `https://image.tmdb.org/t/p/w182/${path}` : null;
+};
+
+export const NoImage = ImagePath.NOIMAGE;
 
 const apiCall = async (endpoint, params) => {
   const options = {
@@ -56,6 +85,18 @@ export const fetchMoviewRecommendationMovies = () => {
   return apiCall(movieRecommendationsMoviesEndPoint);
 };
 
+export const fetchMovieDetails = id => {
+  return apiCall(movieDetailsEndPoint(id));
+};
+
+export const fetchMovieCredits = id => {
+  return apiCall(movieCreditsEndPoint(id));
+};
+
+export const fetchMovieSimilar = id => {
+  return apiCall(movieSimilarEndPoint(id));
+};
+
 export const fetchTrendingTvShows = () => {
   return apiCall(trendingTvEndPoint);
 };
@@ -70,4 +111,16 @@ export const fetchPopularTvShows = () => {
 
 export const fetchAiringTodayTvShows = () => {
   return apiCall(airingTodayEndPoint);
+};
+
+export const fetchTvDetails = id => {
+  return apiCall(tvDetailsEndPoint(id));
+};
+
+export const fetchTvCredits = id => {
+  return apiCall(tvCreditsEndPoint(id));
+};
+
+export const fetchTvSimilar = id => {
+  return apiCall(tvSimilarEndPoint(id));
 };

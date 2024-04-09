@@ -15,7 +15,7 @@ import {
   scale,
 } from 'react-native-size-matters';
 import Color from '../../constants/Color';
-import {fetchPopularMovies} from '../../utils/Movie';
+import {fetchPopularMovies, image500} from '../../utils/Movie';
 
 const CustomPopularMovies = ({onPress}) => {
   const [loading, setLoading] = useState(true);
@@ -46,7 +46,7 @@ const CustomPopularMovies = ({onPress}) => {
           }}>
           <Image
             source={{
-              uri: `https://image.tmdb.org/t/p/w185/${item.poster_path}`,
+              uri: image500(item.poster_path),
             }}
             style={styles.poster}
           />

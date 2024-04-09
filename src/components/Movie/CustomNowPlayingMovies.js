@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Text,
   View,
-  ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
 import {
@@ -14,8 +13,10 @@ import {
   scale,
 } from 'react-native-size-matters';
 import Color from '../../constants/Color';
-import {fetchNowPlayingMovies} from '../../utils/Movie';
+import {NoImage, fetchNowPlayingMovies, image500} from '../../utils/Movie';
 import navigationString from '../../constants/navigationString';
+
+import {Skeleton} from '@rneui/themed';
 
 const CustomNowPlayingMovies = ({onPress}) => {
   const [loading, setLoading] = useState(true);
@@ -44,12 +45,25 @@ const CustomNowPlayingMovies = ({onPress}) => {
           onPress={() => {
             onPress(item);
           }}>
-          <Image
-            source={{
-              uri: `https://image.tmdb.org/t/p/w185/${item.poster_path}`,
-            }}
-            style={styles.poster}
-          />
+          {loading && (
+            <Skeleton
+              width={moderateScale(100)}
+              height={moderateVerticalScale(150)}
+              borderRadius={moderateScale(10)}
+              marginRight={moderateScale(10)}
+            />
+          )}
+          {!loading && (
+            <Image
+              source={{
+                uri: image500(item.poster_path || NoImage),
+              }}
+              style={styles.poster}
+              resizeMode="cover"
+              onError={() => setLoading(true)}
+              onLoad={() => setLoading(false)}
+            />
+          )}
           <Text style={styles.title}>
             {item.title.length > 12
               ? `${item.title.substring(0, 12)}...`
@@ -60,29 +74,15 @@ const CustomNowPlayingMovies = ({onPress}) => {
     </View>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Color.RED} />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      {data.length === 0 ? (
-        <Text style={styles.waitText}>
-          Please wait a few moments and try again.
-        </Text>
-      ) : (
-        <FlatList
-          horizontal
-          data={data}
-          renderItem={renderMovies}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.flatListContent}
-        />
-      )}
+      <FlatList
+        horizontal
+        data={data}
+        renderItem={renderMovies}
+        keyExtractor={item => item.id.toString()}
+        contentContainerStyle={styles.flatListContent}
+      />
     </View>
   );
 };
@@ -109,17 +109,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: scale(16),
-    fontWeight: '600',
-    color: Color.WHITE,
-  },
-  loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  waitText: {
-    alignSelf: 'center',
-    marginTop: moderateVerticalScale(50),
-    fontSize: scale(18),
     fontWeight: '600',
     color: Color.WHITE,
   },
