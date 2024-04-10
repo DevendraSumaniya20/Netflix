@@ -9,25 +9,37 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal,
 } from 'react-native';
-import {fetchMovieDetails, fetchTvDetails, image500} from '../../utils/Movie';
+import {
+  fetchMovieCredits,
+  fetchMovieDetails,
+  fetchTvDetails,
+  image342,
+  image500,
+} from '../../utils/Movie';
 import Color from '../../constants/Color';
 import {
   moderateScale,
   moderateVerticalScale,
   scale,
 } from 'react-native-size-matters';
-import CustomButton from '../../components/CustomButton';
 import CustomIconText from '../../components/CustomIconText';
+import CustomIcon from '../../components/CustomIcon';
 
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
+  const [cast, setCast] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [genres, setGenres] = useState([]);
+  const [creator, setCreator] = useState(null);
 
   const {itemIdMovie, itemIdTv} = route.params;
 
   useEffect(() => {
     if (itemIdMovie) {
       getMovieDetails();
+      getMovieCredits();
     }
 
     if (itemIdTv) {
@@ -39,8 +51,19 @@ const VideoScreen = ({route, navigation}) => {
     try {
       const movieDetails = await fetchMovieDetails(itemIdMovie);
       setMovieData(movieDetails);
+      setGenres(movieDetails.genres); // Set genres state
     } catch (error) {
       console.error('Error fetching movie details:', error);
+    }
+  }, [itemIdMovie]);
+
+  const getMovieCredits = useCallback(async () => {
+    try {
+      const credits = await fetchMovieCredits(itemIdMovie);
+      setCast(credits.cast);
+      setMovieData(prevData => ({...prevData, cast: credits.cast}));
+    } catch (error) {
+      console.error('Error fetching movie credits:', error);
     }
   }, [itemIdMovie]);
 
@@ -53,30 +76,40 @@ const VideoScreen = ({route, navigation}) => {
     }
   }, [itemIdTv]);
 
+  const toggleModal = () => {
+    setShowModal(!showModal);
+  };
+
   const renderItem = () => {
     if (!movieData) return null;
     return (
       <View style={{flex: 1}}>
         <Image
-          source={{uri: image500(movieData.poster_path)}}
+          source={{
+            uri: image500(movieData.backdrop_path || movieData.poster_path),
+          }}
           style={styles.poster}
-          resizeMethod="auto"
           resizeMode="cover"
         />
-        <Text style={styles.textStyle}>{movieData.title}</Text>
+        <Text style={styles.titleTextStyle}>
+          {movieData.title || movieData.original_title}
+        </Text>
+
+        {/* <Text style={styles.textStyle}>{movieData.id}</Text> */}
         <View
           style={{
             flexDirection: 'row',
-            justifyContent: 'space-evenly',
             alignItems: 'center',
+            marginVertical: moderateVerticalScale(8),
           }}>
-          <Text style={styles.textStyle}>
+          <Text style={styles.releasedateTextStyle}>
             {movieData.release_date.split('-')[0]}
           </Text>
-          <Text style={(styles.textStyle, {backgroundColor: Color.GRAY})}>
-            U/A 16+
-          </Text>
-          <Text style={styles.textStyle}>
+          {movieData.adult === false ? (
+            <Text style={styles.underAgeTextStyle}>U/A 16+</Text>
+          ) : null}
+
+          <Text style={styles.runtimeTextStyle}>
             {Math.floor(movieData.runtime / 60)}h {movieData.runtime % 60}m
           </Text>
         </View>
@@ -135,7 +168,84 @@ const VideoScreen = ({route, navigation}) => {
           }}
         />
         <View>
-          <Text style={styles.textStyle}>{movieData.overview}</Text>
+          <Text style={styles.overviewTextStyle}>{movieData.overview}</Text>
+
+          <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+            <Text style={styles.StarringOverViewTextStyle}>Starring:</Text>
+            {cast.slice(0, 4).map((actor, index) => (
+              <Text key={index} style={[styles.StarringTextStyle]}>
+                {actor.name}
+              </Text>
+            ))}
+            {cast.length > 4 && (
+              <TouchableOpacity onPress={toggleModal}>
+                <Text style={styles.moreTextStyle}>... more</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <View style={{flexDirection: 'row'}}>
+            <Text style={styles.directorTextStyle}>Director : </Text>
+            {movieData.production_companies.map((company, index) => (
+              <Text key={index} style={styles.companyTextStyle}>
+                {company.name}
+              </Text>
+            ))}
+          </View>
+        </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+          }}>
+          <CustomIconText
+            color={Color.WHITE}
+            text={'My list'}
+            iconName={'plus'}
+            type={'AntDesign'}
+            onPress={() => {
+              Alert.alert('hello');
+            }}
+            moreStyles={{alignItems: 'center'}}
+            moreTextStyle={{textAlign: 'center'}}
+            size={scale(25)}
+          />
+          <CustomIconText
+            color={Color.WHITE}
+            text={'Rate'}
+            iconName={'like'}
+            type={'EvilIcons'}
+            onPress={() => {
+              Alert.alert('hello');
+            }}
+            size={scale(25)}
+            moreStyles={{alignItems: 'center'}}
+            moreTextStyle={{textAlign: 'center'}}
+          />
+          <CustomIconText
+            color={Color.WHITE}
+            text={'Share'}
+            iconName={'share'}
+            type={'Entypo'}
+            onPress={() => {
+              Alert.alert('hello');
+            }}
+            size={scale(25)}
+            moreStyles={{alignItems: 'center'}}
+            moreTextStyle={{textAlign: 'center'}}
+          />
+          <CustomIconText
+            color={Color.WHITE}
+            text={'Download'}
+            iconName={'download-multiple'}
+            type={'MaterialCommunityIcons'}
+            onPress={() => {
+              Alert.alert('hello');
+            }}
+            size={scale(25)}
+            moreStyles={{alignItems: 'center'}}
+            moreTextStyle={{textAlign: 'center'}}
+          />
         </View>
       </View>
     );
@@ -154,10 +264,52 @@ const VideoScreen = ({route, navigation}) => {
               data={[movieData]}
               renderItem={renderItem}
               keyExtractor={() => movieData?.id.toString()}
+              showsVerticalScrollIndicator={false}
             />
           )}
         </View>
       </SafeAreaView>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showModal}
+        onRequestClose={toggleModal}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.closeButtonContainer}>
+              <TouchableOpacity onPress={toggleModal}>
+                <CustomIcon
+                  color={Color.WHITE}
+                  name={'cross'}
+                  size={scale(26)}
+                  type="Entypo"
+                />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalTitle}>Cast</Text>
+            <FlatList
+              showsVerticalScrollIndicator={false}
+              data={cast}
+              renderItem={({item}) => (
+                <Text style={styles.modalItem}> • {item.name}</Text>
+              )}
+              keyExtractor={(item, index) => index.toString()}
+            />
+            <Text style={styles.modalTitle}>Genres</Text>
+            <FlatList
+              showsVerticalScrollIndicator={false}
+              data={genres}
+              renderItem={({item}) => (
+                <TouchableOpacity style={styles.genreItemContainer}>
+                  <Text style={styles.modalItem}> • {item.name}</Text>
+                </TouchableOpacity>
+              )}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -173,11 +325,83 @@ const styles = StyleSheet.create({
     marginHorizontal: moderateScale(16),
   },
   poster: {
-    width: moderateScale(340),
-    height: moderateVerticalScale(300),
+    width: moderateScale(350),
+    height: moderateVerticalScale(350),
     borderRadius: moderateScale(10),
   },
   textStyle: {
     color: Color.WHITE,
+  },
+  titleTextStyle: {
+    color: Color.WHITE,
+    fontSize: scale(24),
+    fontWeight: '800',
+    marginVertical: moderateScale(8),
+  },
+  runtimeTextStyle: {
+    color: Color.WHITE,
+    marginHorizontal: moderateScale(6),
+    fontSize: scale(14),
+  },
+  releasedateTextStyle: {
+    color: Color.WHITE,
+    fontSize: scale(14),
+  },
+  underAgeTextStyle: {
+    backgroundColor: Color.GRAY,
+    marginHorizontal: moderateScale(24),
+    color: Color.WHITE,
+    paddingHorizontal: moderateScale(8),
+    fontSize: scale(14),
+    textAlign: 'center',
+  },
+  overviewTextStyle: {
+    color: Color.WHITE,
+    fontSize: scale(14),
+    marginVertical: moderateVerticalScale(8),
+  },
+  StarringOverViewTextStyle: {color: Color.WHITE, fontSize: scale(14)},
+  StarringTextStyle: {
+    color: Color.GRAY,
+    fontSize: scale(14),
+    marginBottom: moderateVerticalScale(2),
+  },
+  moreTextStyle: {color: Color.WHITE, fontSize: scale(14)},
+  directorTextStyle: {color: Color.WHITE, fontSize: scale(14)},
+  companyTextStyle: {color: Color.GRAY, fontSize: scale(14)},
+
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Color.BLACK_50,
+  },
+  modalContent: {
+    backgroundColor: Color.BLACK_50,
+    borderRadius: moderateScale(10),
+    padding: moderateScale(20),
+    maxHeight: '100%',
+    alignItems: 'center',
+    width: '100%',
+  },
+
+  modalTitle: {
+    fontSize: scale(18),
+    fontWeight: 'bold',
+    marginBottom: moderateVerticalScale(10),
+    color: Color.WHITE,
+  },
+  modalItem: {
+    fontSize: scale(16),
+    marginBottom: moderateVerticalScale(8),
+    color: Color.GRAY_2,
+  },
+  genreItemContainer: {
+    width: '100%',
+  },
+  closeButtonContainer: {
+    alignItems: 'center',
+    marginRight: moderateScale(-300),
+    marginTop: moderateScale(16),
   },
 });
