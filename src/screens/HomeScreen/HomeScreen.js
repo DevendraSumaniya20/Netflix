@@ -26,7 +26,6 @@ import CustomTopRatedTvShows from '../../components/Tv/CustomTopRatedTvShows';
 import CustomNowPlayingMovies from '../../components/Movie/CustomNowPlayingMovies';
 import CustomPopularMovies from '../../components/Movie/CustomPopularMovies';
 import navigationString from '../../constants/navigationString';
-import {fetchMovieCredits, fetchMovieDetails} from '../../utils/Movie';
 
 const HomeScreen = ({navigation, route}) => {
   useEffect(() => {}, []);
@@ -113,7 +112,7 @@ const HomeScreen = ({navigation, route}) => {
                 <CustomNowPlayingMovies
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemId: item.id,
+                      itemIdMovie: item.id,
                     });
                   }}
                 />
@@ -121,7 +120,7 @@ const HomeScreen = ({navigation, route}) => {
                 <CustomTrendingMovies
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemId: item.id,
+                      itemIdMovie: item.id,
                     });
                   }}
                 />
@@ -129,7 +128,7 @@ const HomeScreen = ({navigation, route}) => {
                 <CustomTrandingTvShow
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemId: item.id,
+                      itemIdTv: item.id,
                     });
                   }}
                 />
@@ -137,7 +136,7 @@ const HomeScreen = ({navigation, route}) => {
                 <CustomTopRatedMovies
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemId: item.id,
+                      itemIdMovie: item.id,
                     });
                   }}
                 />
@@ -145,7 +144,7 @@ const HomeScreen = ({navigation, route}) => {
                 <CustomTopRatedTvShows
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemId: item.id,
+                      itemIdTv: item.id,
                     });
                   }}
                 />
@@ -153,7 +152,7 @@ const HomeScreen = ({navigation, route}) => {
                 <CustomPopularMovies
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemId: item.id,
+                      itemIdMovie: item.id,
                     });
                   }}
                 />
