@@ -14,6 +14,7 @@ import {
 import {
   fetchMovieCredits,
   fetchMovieDetails,
+  fetchMovieSimilar,
   fetchTvDetails,
   image342,
   image500,
@@ -26,13 +27,15 @@ import {
 } from 'react-native-size-matters';
 import CustomIconText from '../../components/CustomIconText';
 import CustomIcon from '../../components/CustomIcon';
+import {Avatar} from '@rneui/themed';
 
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
   const [cast, setCast] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [genres, setGenres] = useState([]);
-  const [creator, setCreator] = useState(null);
+  const [activeTab, setActiveTab] = useState(1);
+  const [similar, setSimilar] = useState([]);
 
   const {itemIdMovie, itemIdTv} = route.params;
 
@@ -40,6 +43,7 @@ const VideoScreen = ({route, navigation}) => {
     if (itemIdMovie) {
       getMovieDetails();
       getMovieCredits();
+      getMovieSimilar();
     }
 
     if (itemIdTv) {
@@ -51,7 +55,7 @@ const VideoScreen = ({route, navigation}) => {
     try {
       const movieDetails = await fetchMovieDetails(itemIdMovie);
       setMovieData(movieDetails);
-      setGenres(movieDetails.genres); // Set genres state
+      setGenres(movieDetails.genres);
     } catch (error) {
       console.error('Error fetching movie details:', error);
     }
@@ -67,10 +71,20 @@ const VideoScreen = ({route, navigation}) => {
     }
   }, [itemIdMovie]);
 
+  const getMovieSimilar = useCallback(async () => {
+    try {
+      const similar = await fetchMovieSimilar(itemIdMovie);
+      // console.log('............', similar);
+      setSimilar(similar);
+    } catch (error) {
+      console.error('Error fetching movie credits:', error);
+    }
+  }, [itemIdMovie]);
+
   const getTvShowDetails = useCallback(async () => {
     try {
       const tvData = await fetchTvDetails(itemIdTv);
-      console.log(tvData);
+      // console.log(tvData);
     } catch (error) {
       console.error('Error fetching TV show details:', error);
     }
@@ -78,6 +92,10 @@ const VideoScreen = ({route, navigation}) => {
 
   const toggleModal = () => {
     setShowModal(!showModal);
+  };
+
+  const handleTabPress = tabNumber => {
+    setActiveTab(tabNumber);
   };
 
   const renderItem = () => {
@@ -247,6 +265,23 @@ const VideoScreen = ({route, navigation}) => {
             moreTextStyle={{textAlign: 'center'}}
           />
         </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            flex: 1,
+          }}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 1 && styles.activeTab]}
+            onPress={() => handleTabPress(1)}>
+            <Text style={styles.tabButtonText}>Collection</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 2 && styles.activeTab]}
+            onPress={() => handleTabPress(2)}>
+            <Text style={styles.tabButtonText}>More Like This</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -259,6 +294,49 @@ const VideoScreen = ({route, navigation}) => {
             Platform.OS === 'android' ? moderateVerticalScale(4) : null,
         }}>
         <View style={styles.marginContainer}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.goBack();
+              }}>
+              <CustomIcon
+                name={'arrow-back-outline'}
+                color={Color.WHITE}
+                size={scale(24)}
+                type="Ionicons"
+              />
+            </TouchableOpacity>
+            <View
+              style={{
+                flexDirection: 'row',
+                gap: 20,
+                marginRight: moderateScale(4),
+              }}>
+              <TouchableOpacity onPress={() => {}}>
+                <CustomIcon
+                  name={'search-outline'}
+                  color={Color.WHITE}
+                  size={scale(24)}
+                  type="Ionicons"
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => {}}>
+                <Avatar
+                  size={32}
+                  rounded
+                  source={{
+                    uri: 'https://randomuser.me/api/portraits/men/36.jpg',
+                  }}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <CustomIcon />
           {movieData && (
             <FlatList
               data={[movieData]}
@@ -377,7 +455,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.BLACK_50,
   },
   modalContent: {
-    backgroundColor: Color.BLACK_50,
+    backgroundColor: Color.BLACK_90,
     borderRadius: moderateScale(10),
     padding: moderateScale(20),
     maxHeight: '100%',
@@ -403,5 +481,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: moderateScale(-300),
     marginTop: moderateScale(16),
+    flexDirection: 'row',
+  },
+  tabButton: {
+    paddingHorizontal: moderateScale(20),
+    paddingVertical: moderateVerticalScale(10),
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabButtonText: {
+    fontSize: scale(16),
+    fontWeight: 'bold',
+    color: Color.WHITE,
+  },
+  activeTab: {
+    borderBottomColor: 'blue',
   },
 });
