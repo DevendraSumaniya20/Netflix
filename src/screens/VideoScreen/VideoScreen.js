@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import {
   fetchMovieCredits,
@@ -29,7 +30,7 @@ import {
 } from 'react-native-size-matters';
 import CustomIconText from '../../components/CustomIconText';
 import CustomIcon from '../../components/CustomIcon';
-import {Avatar} from '@rneui/themed';
+import {Avatar, Tab} from '@rneui/themed';
 
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
@@ -40,92 +41,53 @@ const VideoScreen = ({route, navigation}) => {
   const [genres, setGenres] = useState([]);
   const [activeTab, setActiveTab] = useState(1);
   const [similar, setSimilar] = useState([]);
+  const [index, setIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const {itemIdMovie, itemIdTv} = route.params;
 
   useEffect(() => {
-    if (itemIdMovie) {
-      getMovieDetails();
-      getMovieCredits();
-      getMovieSimilar();
-    }
-
-    if (itemIdTv) {
-      getTvShowDetails();
-      getTvShowCredits();
-      getTvShowSimilar();
-    }
+    fetchData();
   }, [itemIdMovie, itemIdTv]);
 
-  const getMovieDetails = useCallback(async () => {
+  const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
-      const movieDetails = await fetchMovieDetails(itemIdMovie);
-      setMovieData(movieDetails);
-      setGenres(movieDetails.genres);
-    } catch (error) {
-      console.error('Error fetching movie details:', error);
-    }
-  }, [itemIdMovie]);
+      if (itemIdMovie) {
+        const movieDetails = await fetchMovieDetails(itemIdMovie);
+        const credits = await fetchMovieCredits(itemIdMovie);
+        const similarData = await fetchMovieSimilar(itemIdMovie);
+        setMovieData(movieDetails);
+        setCast(credits.cast);
+        setGenres(movieDetails.genres);
+        setSimilar(similarData?.results || []);
+      }
 
-  const getMovieCredits = useCallback(async () => {
-    try {
-      const credits = await fetchMovieCredits(itemIdMovie);
-      setCast(credits.cast);
-      setMovieData(prevData => ({...prevData, cast: credits.cast}));
+      if (itemIdTv) {
+        const tvData = await fetchTvDetails(itemIdTv);
+        const credits = await fetchTvCredits(itemIdTv);
+        // const similar = await fetchTvSimilar(itemIdTv);
+        setTvShowData(tvData);
+        setCast(credits.cast);
+        setGenres(tvData.genres);
+        // setSimilar(similar);
+      }
     } catch (error) {
-      console.error('Error fetching movie credits:', error);
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [itemIdMovie]);
-
-  const getMovieSimilar = useCallback(async () => {
-    try {
-      const similar = await fetchMovieSimilar(itemIdMovie);
-      // console.log('............', similar);
-      setSimilar(similar);
-    } catch (error) {
-      console.error('Error fetching movie credits:', error);
-    }
-  }, [itemIdMovie]);
-
-  const getTvShowCredits = useCallback(async () => {
-    try {
-      const tvCredits = await fetchTvCredits(itemIdTv);
-      setCast(tvCredits.cast);
-      setTvShowData(prevData => ({...prevData, cast: tvCredits.cast}));
-    } catch (error) {
-      console.error('Error fetching TV show details:', error);
-    }
-  }, [itemIdTv]);
-
-  const getTvShowSimilar = useCallback(async () => {
-    try {
-      const similar = await fetchTvSimilar(itemIdTv);
-      setSimilar(similar);
-    } catch (error) {
-      console.error('Error fetching TV show details:', error);
-    }
-  }, [itemIdTv]);
-
-  const getTvShowDetails = useCallback(async () => {
-    try {
-      const tvData = await fetchTvDetails(itemIdTv);
-      setGenres(tvData.genres);
-      setTvShowData(tvData);
-    } catch (error) {
-      console.error('Error fetching TV show details:', error);
-    }
-  }, [itemIdTv]);
+  }, [itemIdMovie, itemIdTv]);
 
   const toggleModal = () => {
     setShowModal(!showModal);
   };
 
-  const handleTabPress = tabNumber => {
-    setActiveTab(tabNumber);
-  };
-
   const renderItemMovie = () => {
     if (!movieData) return null;
+
+    const collectionData = movieData.belongs_to_collection;
+
     return (
       <View style={{flex: 1}}>
         <Image
@@ -216,12 +178,14 @@ const VideoScreen = ({route, navigation}) => {
 
           <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
             <Text style={styles.StarringOverViewTextStyle}>Starring:</Text>
-            {cast.slice(0, 4).map((actor, index) => (
-              <Text key={index} style={[styles.StarringTextStyle]}>
-                {actor.name}
-              </Text>
-            ))}
-            {cast.length > 4 && (
+            {cast &&
+              cast.slice(0, 4).map((actor, index) => (
+                <Text key={index} style={[styles.StarringTextStyle]}>
+                  {actor.name}
+                </Text>
+              ))}
+
+            {cast && cast.length > 4 && (
               <TouchableOpacity onPress={toggleModal}>
                 <Text style={styles.moreTextStyle}>... more</Text>
               </TouchableOpacity>
@@ -291,29 +255,67 @@ const VideoScreen = ({route, navigation}) => {
             moreTextStyle={{textAlign: 'center'}}
           />
         </View>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            flex: 1,
-          }}>
-          <TouchableOpacity
-            style={[styles.tabButton, activeTab === 1 && styles.activeTab]}
-            onPress={() => handleTabPress(1)}>
-            <Text style={styles.tabButtonText}>Collection</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabButton, activeTab === 2 && styles.activeTab]}
-            onPress={() => handleTabPress(2)}>
-            <Text style={styles.tabButtonText}>More Like This</Text>
-          </TouchableOpacity>
-        </View>
+        <Tab value={index} onChange={setIndex}>
+          <Tab.Item title="Collection" />
+          <Tab.Item title="More Like This" />
+        </Tab>
+
+        {index === 0 && (
+          <>
+            {collectionData && collectionData.poster_path ? (
+              <Image
+                source={{uri: image500(collectionData.poster_path)}}
+                style={styles.collectionImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Image
+                source={{
+                  uri: image500(
+                    movieData.backdrop_path || movieData.poster_path,
+                  ),
+                }}
+                style={styles.collectionImage}
+                resizeMode="cover"
+              />
+            )}
+          </>
+        )}
+
+        {index === 1 && (
+          <>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'space-evenly',
+              }}>
+              {similar.map((movie, index) => (
+                <Image
+                  key={index}
+                  source={{uri: image500(movie.poster_path)}}
+                  style={[
+                    styles.similarimages,
+                    {
+                      marginBottom:
+                        index % 2 === 1 ? moderateVerticalScale(8) : 0,
+                    },
+                  ]}
+                  resizeMode="cover"
+                />
+              ))}
+            </View>
+          </>
+        )}
       </View>
     );
   };
 
   const renderItemTvShow = () => {
     if (!tvShowData) return null;
+
+    const collectionData = tvShowData.belongs_to_collection;
     return (
       <View style={{flex: 1}}>
         <Image
@@ -407,12 +409,14 @@ const VideoScreen = ({route, navigation}) => {
 
           <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
             <Text style={styles.StarringOverViewTextStyle}>Starring:</Text>
-            {cast.slice(0, 4).map((actor, index) => (
-              <Text key={index} style={[styles.StarringTextStyle]}>
-                {actor.name}
-              </Text>
-            ))}
-            {cast.length > 4 && (
+            {cast &&
+              cast.slice(0, 4).map((actor, index) => (
+                <Text key={index} style={[styles.StarringTextStyle]}>
+                  {actor.name}
+                </Text>
+              ))}
+
+            {cast && cast.length > 4 && (
               <TouchableOpacity onPress={toggleModal}>
                 <Text style={styles.moreTextStyle}>... more</Text>
               </TouchableOpacity>
@@ -482,102 +486,199 @@ const VideoScreen = ({route, navigation}) => {
             moreTextStyle={{textAlign: 'center'}}
           />
         </View>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            flex: 1,
-          }}>
-          <TouchableOpacity
-            style={[styles.tabButton, activeTab === 1 && styles.activeTab]}
-            onPress={() => handleTabPress(1)}>
-            <Text style={styles.tabButtonText}>Collection</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabButton, activeTab === 2 && styles.activeTab]}
-            onPress={() => handleTabPress(2)}>
-            <Text style={styles.tabButtonText}>More Like This</Text>
-          </TouchableOpacity>
-        </View>
+
+        <Text style={styles.textStyle}>
+          Total Seasons: {tvShowData.number_of_seasons}
+        </Text>
+        <Text style={styles.textStyle}>
+          Total Episodes: {tvShowData.number_of_episodes}
+        </Text>
+
+        {tvShowData?.seasons?.map((season, index) => (
+          <View key={index}>
+            <Text style={styles.textStyle}>
+              Season {season.season_number}: {season.name}
+            </Text>
+
+            {season.poster_path && (
+              <Image
+                source={{uri: image500(season.poster_path)}}
+                style={styles.collectionImage}
+                resizeMode="cover"
+              />
+            )}
+
+            <View style={{backgroundColor: 'red', flex: 1}}>
+              {season?.episode_list?.map((episode, index) => (
+                <View key={index}>
+                  {episode.poster_path ? (
+                    <Image
+                      source={{uri: image500(episode.poster_path)}}
+                      style={styles.collectionImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View>
+                      <Text style={styles.textStyle}>
+                        Episode {episode.episode_number}: {episode.name}
+                      </Text>
+                      <Image
+                        source={{
+                          uri: image500(
+                            tvShowData.backdrop_path || tvShowData.poster_path,
+                          ),
+                        }}
+                        style={styles.collectionImage}
+                        resizeMode="cover"
+                      />
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          </View>
+        ))}
+        <Tab value={index} onChange={setIndex}>
+          <Tab.Item title="Collection" />
+          <Tab.Item title="More Like This" />
+        </Tab>
+
+        {index === 0 && (
+          <>
+            <Text>Collection</Text>
+            {collectionData && collectionData.poster_path ? (
+              <Image
+                source={{uri: image500(collectionData.poster_path)}}
+                style={styles.collectionImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Image
+                source={{
+                  uri: image500(
+                    tvShowData.backdrop_path || tvShowData.poster_path,
+                  ),
+                }}
+                style={styles.collectionImage}
+                resizeMode="cover"
+              />
+            )}
+          </>
+        )}
+
+        {index === 1 && (
+          <>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'space-evenly',
+              }}>
+              {similar.map((movie, index) => (
+                <Image
+                  key={index}
+                  source={{uri: image500(movie.poster_path)}}
+                  style={[
+                    styles.similarimages,
+                    {
+                      marginBottom:
+                        index % 2 === 1 ? moderateVerticalScale(8) : 0,
+                    },
+                  ]}
+                  resizeMode="cover"
+                />
+              ))}
+            </View>
+          </>
+        )}
       </View>
     );
   };
 
   return (
     <View style={styles.container}>
-      <SafeAreaView
-        style={{
-          marginTop:
-            Platform.OS === 'android' ? moderateVerticalScale(4) : null,
-        }}>
-        <View style={styles.marginContainer}>
-          <View
+      {loading ? (
+        <ActivityIndicator size="large" color={Color.WHITE} />
+      ) : (
+        <View style={styles.container}>
+          <SafeAreaView
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              marginTop:
+                Platform.OS === 'android' ? moderateVerticalScale(4) : null,
             }}>
-            <TouchableOpacity
-              onPress={() => {
-                navigation.goBack();
-              }}>
-              <CustomIcon
-                name={'arrow-back-outline'}
-                color={Color.WHITE}
-                size={scale(24)}
-                type="Ionicons"
-              />
-            </TouchableOpacity>
-            <View
-              style={{
-                flexDirection: 'row',
-                gap: 20,
-                marginRight: moderateScale(4),
-              }}>
-              <TouchableOpacity onPress={() => {}}>
-                <CustomIcon
-                  name={'search-outline'}
-                  color={Color.WHITE}
-                  size={scale(24)}
-                  type="Ionicons"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => {}}>
-                <Avatar
-                  size={32}
-                  rounded
-                  source={{
-                    uri: 'https://randomuser.me/api/portraits/men/36.jpg',
+            <View style={styles.marginContainer}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    navigation.goBack();
+                  }}>
+                  <CustomIcon
+                    name={'arrow-back-outline'}
+                    color={Color.WHITE}
+                    size={scale(24)}
+                    type="Ionicons"
+                  />
+                </TouchableOpacity>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    gap: 20,
+                    marginRight: moderateScale(4),
+                  }}>
+                  <TouchableOpacity onPress={() => {}}>
+                    <CustomIcon
+                      name={'search-outline'}
+                      color={Color.WHITE}
+                      size={scale(24)}
+                      type="Ionicons"
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => {}}>
+                    <Avatar
+                      size={32}
+                      rounded
+                      source={{
+                        uri: 'https://randomuser.me/api/portraits/men/36.jpg',
+                      }}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <CustomIcon />
+              {movieData && (
+                <FlatList
+                  data={[movieData]}
+                  renderItem={renderItemMovie}
+                  keyExtractor={() => movieData?.id.toString()}
+                  showsVerticalScrollIndicator={false}
+                  contentInsetAdjustmentBehavior="automatic"
+                  contentContainerStyle={{
+                    paddingBottom: moderateScale(500),
                   }}
                 />
-              </TouchableOpacity>
+              )}
+              {tvShowData && (
+                <FlatList
+                  data={[tvShowData]}
+                  renderItem={renderItemTvShow}
+                  keyExtractor={() => tvShowData?.id.toString()}
+                  showsVerticalScrollIndicator={false}
+                  contentInsetAdjustmentBehavior="automatic"
+                  contentContainerStyle={{
+                    paddingBottom: moderateScale(500),
+                  }}
+                />
+              )}
             </View>
-          </View>
-          <CustomIcon />
-          {movieData && (
-            <FlatList
-              data={[movieData]}
-              renderItem={renderItemMovie}
-              keyExtractor={() => movieData?.id.toString()}
-              showsVerticalScrollIndicator={false}
-              contentInsetAdjustmentBehavior="automatic"
-              contentContainerStyle={{paddingBottom: moderateScale(500)}}
-            />
-          )}
-
-          {tvShowData && (
-            <FlatList
-              data={[tvShowData]}
-              renderItem={renderItemTvShow}
-              keyExtractor={() => tvShowData?.id.toString()}
-              showsVerticalScrollIndicator={false}
-              contentInsetAdjustmentBehavior="automatic"
-              contentContainerStyle={{paddingBottom: moderateScale(500)}}
-            />
-          )}
+          </SafeAreaView>
         </View>
-      </SafeAreaView>
-
+      )}
       <Modal
         animationType="slide"
         transparent={true}
@@ -726,5 +827,17 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomColor: 'blue',
+  },
+  collectionImage: {
+    width: '50%',
+    height: '30%',
+    borderRadius: moderateScale(10),
+    marginBottom: moderateVerticalScale(8),
+  },
+  similarimages: {
+    width: moderateScale(130),
+    height: moderateVerticalScale(150),
+    borderRadius: moderateScale(10),
+    marginBottom: moderateVerticalScale(8),
   },
 });
