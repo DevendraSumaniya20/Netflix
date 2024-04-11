@@ -32,7 +32,9 @@ const HomeScreen = ({navigation, route}) => {
 
   return (
     <>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentInsetAdjustmentBehavior="automatic">
         <View style={{flex: 1, backgroundColor: Color.BLACK}}>
           <SafeAreaView style={styles.container}>
             <View style={styles.backgroundContainer}>

@@ -15,7 +15,9 @@ import {
   fetchMovieCredits,
   fetchMovieDetails,
   fetchMovieSimilar,
+  fetchTvCredits,
   fetchTvDetails,
+  fetchTvSimilar,
   image342,
   image500,
 } from '../../utils/Movie';
@@ -31,6 +33,8 @@ import {Avatar} from '@rneui/themed';
 
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
+  const [tvShowData, setTvShowData] = useState(null);
+
   const [cast, setCast] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [genres, setGenres] = useState([]);
@@ -48,6 +52,8 @@ const VideoScreen = ({route, navigation}) => {
 
     if (itemIdTv) {
       getTvShowDetails();
+      getTvShowCredits();
+      getTvShowSimilar();
     }
   }, [itemIdMovie, itemIdTv]);
 
@@ -81,10 +87,30 @@ const VideoScreen = ({route, navigation}) => {
     }
   }, [itemIdMovie]);
 
+  const getTvShowCredits = useCallback(async () => {
+    try {
+      const tvCredits = await fetchTvCredits(itemIdTv);
+      setCast(tvCredits.cast);
+      setTvShowData(prevData => ({...prevData, cast: tvCredits.cast}));
+    } catch (error) {
+      console.error('Error fetching TV show details:', error);
+    }
+  }, [itemIdTv]);
+
+  const getTvShowSimilar = useCallback(async () => {
+    try {
+      const similar = await fetchTvSimilar(itemIdTv);
+      setSimilar(similar);
+    } catch (error) {
+      console.error('Error fetching TV show details:', error);
+    }
+  }, [itemIdTv]);
+
   const getTvShowDetails = useCallback(async () => {
     try {
       const tvData = await fetchTvDetails(itemIdTv);
-      // console.log(tvData);
+      setGenres(tvData.genres);
+      setTvShowData(tvData);
     } catch (error) {
       console.error('Error fetching TV show details:', error);
     }
@@ -98,7 +124,7 @@ const VideoScreen = ({route, navigation}) => {
     setActiveTab(tabNumber);
   };
 
-  const renderItem = () => {
+  const renderItemMovie = () => {
     if (!movieData) return null;
     return (
       <View style={{flex: 1}}>
@@ -286,6 +312,197 @@ const VideoScreen = ({route, navigation}) => {
     );
   };
 
+  const renderItemTvShow = () => {
+    if (!tvShowData) return null;
+    return (
+      <View style={{flex: 1}}>
+        <Image
+          source={{
+            uri: image500(tvShowData.backdrop_path || tvShowData.poster_path),
+          }}
+          style={styles.poster}
+          resizeMode="cover"
+        />
+        <Text style={styles.titleTextStyle}>
+          {tvShowData.name || tvShowData.original_name}
+        </Text>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginVertical: moderateVerticalScale(8),
+          }}>
+          <Text style={styles.releasedateTextStyle}>
+            {tvShowData.first_air_date.split('-')[0]}
+          </Text>
+          {tvShowData.adult === false ? (
+            <Text style={styles.underAgeTextStyle}>U/A 16+</Text>
+          ) : null}
+
+          <Text style={styles.runtimeTextStyle}>
+            {tvShowData.episode_run_time.length > 0
+              ? `${Math.floor(tvShowData.episode_run_time[0] / 60)}h ${
+                  tvShowData.episode_run_time[0] % 60
+                }m`
+              : 'N/A'}
+          </Text>
+        </View>
+
+        <CustomIconText
+          color={Color.BLACK}
+          text={'Play'}
+          iconName={'play'}
+          type={'FontAwesome5'}
+          onPress={() => {
+            Alert.alert('hello');
+          }}
+          size={scale(25)}
+          flexDirection="row"
+          moreStyles={{
+            gap: moderateScale(4),
+            backgroundColor: Color.WHITE,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: moderateScale(5),
+            paddingHorizontal: moderateScale(30),
+            height: moderateVerticalScale(48),
+            width: moderateScale(345),
+          }}
+          moreTextStyle={{
+            color: Color.BLACK,
+            fontWeight: '600',
+            fontSize: scale(20),
+          }}
+        />
+
+        <CustomIconText
+          color={Color.WHITE}
+          text={'Download'}
+          iconName={'arrow-collapse-down'}
+          type={'MaterialCommunityIcons'}
+          onPress={() => {
+            Alert.alert('download');
+          }}
+          size={scale(25)}
+          flexDirection="row"
+          moreStyles={{
+            gap: moderateScale(4),
+            backgroundColor: Color.GRAY,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: moderateScale(5),
+            paddingHorizontal: moderateScale(30),
+            height: moderateVerticalScale(48),
+            width: moderateScale(345),
+          }}
+          moreTextStyle={{
+            color: Color.WHITE,
+            fontWeight: '600',
+            fontSize: scale(20),
+          }}
+        />
+        <View>
+          <Text style={styles.overviewTextStyle}>{tvShowData.overview}</Text>
+
+          <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+            <Text style={styles.StarringOverViewTextStyle}>Starring:</Text>
+            {cast.slice(0, 4).map((actor, index) => (
+              <Text key={index} style={[styles.StarringTextStyle]}>
+                {actor.name}
+              </Text>
+            ))}
+            {cast.length > 4 && (
+              <TouchableOpacity onPress={toggleModal}>
+                <Text style={styles.moreTextStyle}>... more</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <View style={{flexDirection: 'row'}}>
+            <Text style={styles.directorTextStyle}>Director : </Text>
+            {tvShowData.production_companies.map((company, index) => (
+              <Text key={index} style={styles.companyTextStyle}>
+                {company.name}
+              </Text>
+            ))}
+          </View>
+        </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+          }}>
+          <CustomIconText
+            color={Color.WHITE}
+            text={'My list'}
+            iconName={'plus'}
+            type={'AntDesign'}
+            onPress={() => {
+              Alert.alert('hello');
+            }}
+            moreStyles={{alignItems: 'center'}}
+            moreTextStyle={{textAlign: 'center'}}
+            size={scale(25)}
+          />
+          <CustomIconText
+            color={Color.WHITE}
+            text={'Rate'}
+            iconName={'like'}
+            type={'EvilIcons'}
+            onPress={() => {
+              Alert.alert('hello');
+            }}
+            size={scale(25)}
+            moreStyles={{alignItems: 'center'}}
+            moreTextStyle={{textAlign: 'center'}}
+          />
+          <CustomIconText
+            color={Color.WHITE}
+            text={'Share'}
+            iconName={'share'}
+            type={'Entypo'}
+            onPress={() => {
+              Alert.alert('hello');
+            }}
+            size={scale(25)}
+            moreStyles={{alignItems: 'center'}}
+            moreTextStyle={{textAlign: 'center'}}
+          />
+          <CustomIconText
+            color={Color.WHITE}
+            text={'Download'}
+            iconName={'download-multiple'}
+            type={'MaterialCommunityIcons'}
+            onPress={() => {
+              Alert.alert('hello');
+            }}
+            size={scale(25)}
+            moreStyles={{alignItems: 'center'}}
+            moreTextStyle={{textAlign: 'center'}}
+          />
+        </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            flex: 1,
+          }}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 1 && styles.activeTab]}
+            onPress={() => handleTabPress(1)}>
+            <Text style={styles.tabButtonText}>Collection</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 2 && styles.activeTab]}
+            onPress={() => handleTabPress(2)}>
+            <Text style={styles.tabButtonText}>More Like This</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <SafeAreaView
@@ -340,9 +557,22 @@ const VideoScreen = ({route, navigation}) => {
           {movieData && (
             <FlatList
               data={[movieData]}
-              renderItem={renderItem}
+              renderItem={renderItemMovie}
               keyExtractor={() => movieData?.id.toString()}
               showsVerticalScrollIndicator={false}
+              contentInsetAdjustmentBehavior="automatic"
+              contentContainerStyle={{paddingBottom: moderateScale(500)}}
+            />
+          )}
+
+          {tvShowData && (
+            <FlatList
+              data={[tvShowData]}
+              renderItem={renderItemTvShow}
+              keyExtractor={() => tvShowData?.id.toString()}
+              showsVerticalScrollIndicator={false}
+              contentInsetAdjustmentBehavior="automatic"
+              contentContainerStyle={{paddingBottom: moderateScale(500)}}
             />
           )}
         </View>

@@ -13,7 +13,12 @@ import {
   scale,
 } from 'react-native-size-matters';
 import Color from '../../constants/Color';
-import {NoImage, fetchNowPlayingMovies, image500} from '../../utils/Movie';
+import {
+  NoImage,
+  fetchNowPlayingMovies,
+  fetchTrendingMovies,
+  image500,
+} from '../../utils/Movie';
 import navigationString from '../../constants/navigationString';
 
 import {Skeleton} from '@rneui/themed';
