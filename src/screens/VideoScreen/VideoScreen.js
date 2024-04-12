@@ -30,7 +30,7 @@ import {
 } from 'react-native-size-matters';
 import CustomIconText from '../../components/CustomIconText';
 import CustomIcon from '../../components/CustomIcon';
-import {Avatar, Tab} from '@rneui/themed';
+import {Avatar, Tab, ListItem} from '@rneui/themed';
 
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
@@ -45,6 +45,8 @@ const VideoScreen = ({route, navigation}) => {
   const [loading, setLoading] = useState(true);
 
   const {itemIdMovie, itemIdTv} = route.params;
+
+  keyExtractor = (item, index) => index.toString();
 
   useEffect(() => {
     fetchData();
@@ -86,6 +88,13 @@ const VideoScreen = ({route, navigation}) => {
   const renderItemMovie = () => {
     if (!movieData) return null;
 
+    let release_year;
+    if (movieData.release_date) {
+      release_year = movieData.release_date.split('-')[0];
+    } else {
+      release_year = 'Release date unavailable';
+    }
+
     const collectionData = movieData.belongs_to_collection;
 
     return (
@@ -108,9 +117,7 @@ const VideoScreen = ({route, navigation}) => {
             alignItems: 'center',
             marginVertical: moderateVerticalScale(8),
           }}>
-          <Text style={styles.releasedateTextStyle}>
-            {movieData.release_date.split('-')[0]}
-          </Text>
+          <Text style={styles.releasedateTextStyle}>{release_year}</Text>
           {movieData.adult === false ? (
             <Text style={styles.underAgeTextStyle}>U/A 16+</Text>
           ) : null}
@@ -316,6 +323,13 @@ const VideoScreen = ({route, navigation}) => {
     if (!tvShowData) return null;
 
     const collectionData = tvShowData.belongs_to_collection;
+    let runtime;
+    if (tvShowData.episode_run_time) {
+      runtime = tvShowData.episode_run_time.length;
+    } else {
+      runtime = 0;
+    }
+
     return (
       <View style={{flex: 1}}>
         <Image
@@ -343,10 +357,8 @@ const VideoScreen = ({route, navigation}) => {
           ) : null}
 
           <Text style={styles.runtimeTextStyle}>
-            {tvShowData.episode_run_time.length > 0
-              ? `${Math.floor(tvShowData.episode_run_time[0] / 60)}h ${
-                  tvShowData.episode_run_time[0] % 60
-                }m`
+            {runtime && runtime.length > 0
+              ? `${Math.floor(runtime[0] / 60)}h ${runtime[0] % 60}m`
               : 'N/A'}
           </Text>
         </View>
@@ -487,57 +499,6 @@ const VideoScreen = ({route, navigation}) => {
           />
         </View>
 
-        <Text style={styles.textStyle}>
-          Total Seasons: {tvShowData.number_of_seasons}
-        </Text>
-        <Text style={styles.textStyle}>
-          Total Episodes: {tvShowData.number_of_episodes}
-        </Text>
-
-        {tvShowData?.seasons?.map((season, index) => (
-          <View key={index}>
-            <Text style={styles.textStyle}>
-              Season {season.season_number}: {season.name}
-            </Text>
-
-            {season.poster_path && (
-              <Image
-                source={{uri: image500(season.poster_path)}}
-                style={styles.collectionImage}
-                resizeMode="cover"
-              />
-            )}
-
-            <View style={{backgroundColor: 'red', flex: 1}}>
-              {season?.episode_list?.map((episode, index) => (
-                <View key={index}>
-                  {episode.poster_path ? (
-                    <Image
-                      source={{uri: image500(episode.poster_path)}}
-                      style={styles.collectionImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View>
-                      <Text style={styles.textStyle}>
-                        Episode {episode.episode_number}: {episode.name}
-                      </Text>
-                      <Image
-                        source={{
-                          uri: image500(
-                            tvShowData.backdrop_path || tvShowData.poster_path,
-                          ),
-                        }}
-                        style={styles.collectionImage}
-                        resizeMode="cover"
-                      />
-                    </View>
-                  )}
-                </View>
-              ))}
-            </View>
-          </View>
-        ))}
         <Tab value={index} onChange={setIndex}>
           <Tab.Item title="Collection" />
           <Tab.Item title="More Like This" />
@@ -599,7 +560,11 @@ const VideoScreen = ({route, navigation}) => {
   return (
     <View style={styles.container}>
       {loading ? (
-        <ActivityIndicator size="large" color={Color.WHITE} />
+        <ActivityIndicator
+          size="large"
+          color={Color.WHITE}
+          style={styles.loadingContainer}
+        />
       ) : (
         <View style={styles.container}>
           <SafeAreaView
@@ -655,7 +620,7 @@ const VideoScreen = ({route, navigation}) => {
                 <FlatList
                   data={[movieData]}
                   renderItem={renderItemMovie}
-                  keyExtractor={() => movieData?.id.toString()}
+                  keyExtractor={this.keyExtractor}
                   showsVerticalScrollIndicator={false}
                   contentInsetAdjustmentBehavior="automatic"
                   contentContainerStyle={{
@@ -667,11 +632,11 @@ const VideoScreen = ({route, navigation}) => {
                 <FlatList
                   data={[tvShowData]}
                   renderItem={renderItemTvShow}
-                  keyExtractor={() => tvShowData?.id.toString()}
+                  keyExtractor={this.keyExtractor}
                   showsVerticalScrollIndicator={false}
                   contentInsetAdjustmentBehavior="automatic"
                   contentContainerStyle={{
-                    paddingBottom: moderateScale(500),
+                    paddingBottom: moderateScale(3000),
                   }}
                 />
               )}
@@ -730,6 +695,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Color.BLACK,
   },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: Color.BLACK,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   marginContainer: {
     marginHorizontal: moderateScale(16),
   },
