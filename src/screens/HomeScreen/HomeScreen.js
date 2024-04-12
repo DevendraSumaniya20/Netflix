@@ -1,24 +1,17 @@
+import React from 'react';
 import {
-  Alert,
-  Image,
-  ImageBackground,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ImageBackground,
+  Image,
+  SafeAreaView,
+  Alert,
 } from 'react-native';
-import React, {useEffect} from 'react';
-import {
-  moderateScale,
-  moderateVerticalScale,
-  scale,
-} from 'react-native-size-matters';
-import ImagePath from '../../constants/ImagePath';
 import Color from '../../constants/Color';
+import ImagePath from '../../constants/ImagePath';
 import CustomIconText from '../../components/CustomIconText';
-import styles from './Styles';
 import CustomTrendingMovies from '../../components/Movie/CustomTrendingMovies';
 import CustomTrandingTvShow from '../../components/Tv/CustomTrandingTvShow';
 import CustomTopRatedMovies from '../../components/Movie/CustomTopRatedMovies';
@@ -26,10 +19,14 @@ import CustomTopRatedTvShows from '../../components/Tv/CustomTopRatedTvShows';
 import CustomNowPlayingMovies from '../../components/Movie/CustomNowPlayingMovies';
 import CustomPopularMovies from '../../components/Movie/CustomPopularMovies';
 import navigationString from '../../constants/navigationString';
+import {
+  moderateScale,
+  moderateVerticalScale,
+  scale,
+} from 'react-native-size-matters';
+import styles from './Styles';
 
 const HomeScreen = ({navigation, route}) => {
-  useEffect(() => {}, []);
-
   return (
     <>
       <ScrollView
@@ -70,7 +67,6 @@ const HomeScreen = ({navigation, route}) => {
                   }}
                   size={scale(25)}
                 />
-
                 <CustomIconText
                   color={Color.BLACK}
                   text={'Play'}
@@ -96,7 +92,6 @@ const HomeScreen = ({navigation, route}) => {
                     fontSize: scale(20),
                   }}
                 />
-
                 <CustomIconText
                   color={'#fff'}
                   text={'info'}
@@ -108,9 +103,8 @@ const HomeScreen = ({navigation, route}) => {
                   size={scale(25)}
                 />
               </View>
-
               <View style={styles.secondMainView}>
-                <Text style={styles.mainHearder}>Now Playing</Text>
+                <Text style={styles.mainHeader}>Now Playing</Text>
                 <CustomNowPlayingMovies
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {
@@ -118,7 +112,7 @@ const HomeScreen = ({navigation, route}) => {
                     });
                   }}
                 />
-                <Text style={styles.mainHearder}>Trending Movies</Text>
+                <Text style={styles.mainHeader}>Trending Movies</Text>
                 <CustomTrendingMovies
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {
@@ -126,7 +120,7 @@ const HomeScreen = ({navigation, route}) => {
                     });
                   }}
                 />
-                <Text style={styles.mainHearder}>Trending TvShows</Text>
+                <Text style={styles.mainHeader}>Trending TvShows</Text>
                 <CustomTrandingTvShow
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {
@@ -134,7 +128,7 @@ const HomeScreen = ({navigation, route}) => {
                     });
                   }}
                 />
-                <Text style={styles.mainHearder}>Top Rated Movie</Text>
+                <Text style={styles.mainHeader}>Top Rated Movie</Text>
                 <CustomTopRatedMovies
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {
@@ -142,7 +136,7 @@ const HomeScreen = ({navigation, route}) => {
                     });
                   }}
                 />
-                <Text style={styles.mainHearder}>Top Rated TvShows</Text>
+                <Text style={styles.mainHeader}>Top Rated TvShows</Text>
                 <CustomTopRatedTvShows
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {
@@ -150,7 +144,7 @@ const HomeScreen = ({navigation, route}) => {
                     });
                   }}
                 />
-                <Text style={styles.mainHearder}>Most Popular</Text>
+                <Text style={styles.mainHeader}>Most Popular</Text>
                 <CustomPopularMovies
                   onPress={item => {
                     navigation.navigate(navigationString.VIDEOSCREEN, {

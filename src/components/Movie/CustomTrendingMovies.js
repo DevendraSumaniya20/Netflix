@@ -3,10 +3,10 @@ import {
   FlatList,
   Image,
   StyleSheet,
-  Text,
   View,
   ActivityIndicator,
   TouchableOpacity,
+  Text,
 } from 'react-native';
 import {fetchTrendingMovies, image500} from '../../utils/Movie';
 import {
@@ -35,6 +35,8 @@ const CustomTrendingMovies = ({onPress}) => {
     }
   };
 
+  keyExtractor = (item, index) => index.toString();
+
   const renderMovies = ({item}) => (
     <View style={styles.row}>
       <View style={styles.item}>
@@ -50,8 +52,8 @@ const CustomTrendingMovies = ({onPress}) => {
             style={styles.poster}
           />
           <Text style={styles.title}>
-            {item.title.length > 16
-              ? `${item.title.substring(0, 16)}...`
+            {item.title.length > 12
+              ? `${item.title.substring(0, 12)}...`
               : item.title}
           </Text>
         </TouchableOpacity>
@@ -69,26 +71,18 @@ const CustomTrendingMovies = ({onPress}) => {
 
   return (
     <View style={styles.container}>
-      {data.length === 0 ? (
-        <Text style={styles.waitText}>
-          No trending movies available at the moment
-        </Text>
-      ) : (
-        <FlatList
-          horizontal
-          data={data}
-          renderItem={renderMovies}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.flatListContent}
-        />
-      )}
+      <FlatList
+        horizontal
+        data={data}
+        renderItem={renderMovies}
+        keyExtractor={this.keyExtractor}
+        contentContainerStyle={styles.flatListContent}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {},
-  flatListContent: {},
   row: {
     marginHorizontal: moderateScale(2),
   },
@@ -110,15 +104,9 @@ const styles = StyleSheet.create({
     color: Color.WHITE,
   },
   loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  waitText: {
-    alignSelf: 'center',
-    marginTop: moderateVerticalScale(50),
-    fontSize: scale(18),
-    fontWeight: '600',
-    color: Color.WHITE,
   },
 });
 

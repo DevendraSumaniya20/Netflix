@@ -58,6 +58,13 @@ const styles = StyleSheet.create({
     fontSize: scale(16),
     fontWeight: '800',
   },
+  mainHeader: {
+    fontSize: scale(18),
+    fontWeight: 'bold',
+    marginTop: moderateScale(10),
+    marginBottom: moderateVerticalScale(4),
+    color: Color.WHITE,
+  },
 });
 
 export default styles;

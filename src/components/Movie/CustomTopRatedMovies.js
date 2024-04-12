@@ -68,21 +68,17 @@ const CustomTopRatedMovies = ({onPress}) => {
     );
   }
 
+  keyExtractor = (item, index) => index.toString();
+
   return (
     <View style={styles.container}>
-      {data.length === 0 ? (
-        <Text style={styles.waitText}>
-          Please wait a few moments and try again.
-        </Text>
-      ) : (
-        <FlatList
-          horizontal
-          data={data}
-          renderItem={renderMovies}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.flatListContent}
-        />
-      )}
+      <FlatList
+        horizontal
+        data={data}
+        renderItem={renderMovies}
+        keyExtractor={this.keyExtractor}
+        contentContainerStyle={styles.flatListContent}
+      />
     </View>
   );
 };
@@ -90,8 +86,6 @@ const CustomTopRatedMovies = ({onPress}) => {
 export default CustomTopRatedMovies;
 
 const styles = StyleSheet.create({
-  container: {},
-  flatListContent: {},
   row: {
     marginHorizontal: moderateScale(2),
   },

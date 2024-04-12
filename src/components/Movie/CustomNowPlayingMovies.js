@@ -3,9 +3,10 @@ import {
   FlatList,
   Image,
   StyleSheet,
-  Text,
   View,
   TouchableOpacity,
+  ActivityIndicator,
+  Text,
 } from 'react-native';
 import {
   moderateScale,
@@ -13,15 +14,7 @@ import {
   scale,
 } from 'react-native-size-matters';
 import Color from '../../constants/Color';
-import {
-  NoImage,
-  fetchNowPlayingMovies,
-  fetchTrendingMovies,
-  image500,
-} from '../../utils/Movie';
-import navigationString from '../../constants/navigationString';
-
-import {Skeleton} from '@rneui/themed';
+import {NoImage, fetchNowPlayingMovies, image500} from '../../utils/Movie';
 
 const CustomNowPlayingMovies = ({onPress}) => {
   const [loading, setLoading] = useState(true);
@@ -35,12 +28,16 @@ const CustomNowPlayingMovies = ({onPress}) => {
     try {
       const response = await fetchNowPlayingMovies();
       setData(response?.results || []);
+      // console.log('Data:', response?.results || []);
     } catch (error) {
-      console.error('Error fetching trending movies:', error);
+      console.error('Error fetching now playing movies:', error);
+      // console.log('Error:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const keyExtractor = (item, index) => index.toString();
 
   const renderMovies = ({item}) => (
     <View style={styles.row}>
@@ -50,25 +47,14 @@ const CustomNowPlayingMovies = ({onPress}) => {
           onPress={() => {
             onPress(item);
           }}>
-          {loading && (
-            <Skeleton
-              width={moderateScale(100)}
-              height={moderateVerticalScale(150)}
-              borderRadius={moderateScale(10)}
-              marginRight={moderateScale(10)}
-            />
-          )}
-          {!loading && (
-            <Image
-              source={{
-                uri: image500(item.poster_path || NoImage),
-              }}
-              style={styles.poster}
-              resizeMode="cover"
-              onError={() => setLoading(true)}
-              onLoad={() => setLoading(false)}
-            />
-          )}
+          <Image
+            source={{
+              uri: image500(item.poster_path || NoImage),
+            }}
+            style={styles.poster}
+            resizeMode="cover"
+          />
+
           <Text style={styles.title}>
             {item.title.length > 12
               ? `${item.title.substring(0, 12)}...`
@@ -79,13 +65,21 @@ const CustomNowPlayingMovies = ({onPress}) => {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Color.RED} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
         horizontal
         data={data}
         renderItem={renderMovies}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={keyExtractor}
         contentContainerStyle={styles.flatListContent}
       />
     </View>
@@ -95,8 +89,6 @@ const CustomNowPlayingMovies = ({onPress}) => {
 export default CustomNowPlayingMovies;
 
 const styles = StyleSheet.create({
-  container: {},
-  flatListContent: {},
   row: {
     marginHorizontal: moderateScale(2),
   },
@@ -111,6 +103,11 @@ const styles = StyleSheet.create({
     height: moderateVerticalScale(150),
     borderRadius: moderateScale(10),
     marginRight: moderateScale(10),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: scale(16),

@@ -19,7 +19,6 @@ import {fetchTopRatedTvShows, image500} from '../../utils/Movie';
 const CustomTopRatedTvShows = ({onPress}) => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState([]);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     getTrendingTvShows();
@@ -32,7 +31,6 @@ const CustomTopRatedTvShows = ({onPress}) => {
       console.log(response?.results.title);
     } catch (error) {
       console.error('Error fetching Top rated TvShows:', error);
-      setError('Error fetching data');
     } finally {
       setLoading(false);
     }
@@ -72,27 +70,17 @@ const CustomTopRatedTvShows = ({onPress}) => {
     );
   }
 
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
+  keyExtractor = (item, index) => index.toString();
 
   return (
     <View style={styles.container}>
-      {data.length === 0 ? (
-        <Text style={styles.waitText}>Please wait for the moment</Text>
-      ) : (
-        <FlatList
-          horizontal
-          data={data}
-          renderItem={renderTvShows}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.flatListContent}
-        />
-      )}
+      <FlatList
+        horizontal
+        data={data}
+        renderItem={renderTvShows}
+        keyExtractor={this.keyExtractor}
+        contentContainerStyle={styles.flatListContent}
+      />
     </View>
   );
 };
@@ -100,8 +88,6 @@ const CustomTopRatedTvShows = ({onPress}) => {
 export default CustomTopRatedTvShows;
 
 const styles = StyleSheet.create({
-  container: {},
-  flatListContent: {},
   row: {
     marginHorizontal: moderateScale(2),
   },
@@ -125,21 +111,5 @@ const styles = StyleSheet.create({
   loadingContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  waitText: {
-    alignSelf: 'center',
-    marginTop: moderateVerticalScale(50),
-    fontSize: scale(18),
-    fontWeight: '600',
-    color: Color.WHITE,
-  },
-  errorContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    fontSize: scale(18),
-    fontWeight: '600',
-    color: Color.RED,
   },
 });

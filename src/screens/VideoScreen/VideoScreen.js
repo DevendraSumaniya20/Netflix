@@ -67,12 +67,13 @@ const VideoScreen = ({route, navigation}) => {
 
       if (itemIdTv) {
         const tvData = await fetchTvDetails(itemIdTv);
+
         const credits = await fetchTvCredits(itemIdTv);
-        // const similar = await fetchTvSimilar(itemIdTv);
+        const similarTvData = await fetchTvSimilar(itemIdTv);
         setTvShowData(tvData);
         setCast(credits.cast);
         setGenres(tvData.genres);
-        // setSimilar(similar);
+        setSimilar(similarTvData?.results || []);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -200,11 +201,12 @@ const VideoScreen = ({route, navigation}) => {
           </View>
           <View style={{flexDirection: 'row'}}>
             <Text style={styles.directorTextStyle}>Director : </Text>
-            {movieData.production_companies.map((company, index) => (
-              <Text key={index} style={styles.companyTextStyle}>
-                {company.name}
-              </Text>
-            ))}
+            {movieData &&
+              movieData.production_companies.map((company, index) => (
+                <Text key={index} style={styles.companyTextStyle}>
+                  {company.name}
+                </Text>
+              ))}
           </View>
         </View>
         <View
@@ -272,7 +274,7 @@ const VideoScreen = ({route, navigation}) => {
             {collectionData && collectionData.poster_path ? (
               <Image
                 source={{uri: image500(collectionData.poster_path)}}
-                style={styles.collectionImage}
+                style={styles.collectionImageMovie}
                 resizeMode="cover"
               />
             ) : (
@@ -282,7 +284,7 @@ const VideoScreen = ({route, navigation}) => {
                     movieData.backdrop_path || movieData.poster_path,
                   ),
                 }}
-                style={styles.collectionImage}
+                style={styles.collectionImageMovie}
                 resizeMode="cover"
               />
             )}
@@ -322,7 +324,7 @@ const VideoScreen = ({route, navigation}) => {
   const renderItemTvShow = () => {
     if (!tvShowData) return null;
 
-    const collectionData = tvShowData.belongs_to_collection;
+    const collectionData = tvShowData.backdrop_path;
     let runtime;
     if (tvShowData.episode_run_time) {
       runtime = tvShowData.episode_run_time.length;
@@ -350,7 +352,8 @@ const VideoScreen = ({route, navigation}) => {
             marginVertical: moderateVerticalScale(8),
           }}>
           <Text style={styles.releasedateTextStyle}>
-            {tvShowData.first_air_date.split('-')[0]}
+            {tvShowData.first_air_date &&
+              tvShowData.first_air_date.split('-')[0]}
           </Text>
           {tvShowData.adult === false ? (
             <Text style={styles.underAgeTextStyle}>U/A 16+</Text>
@@ -436,11 +439,12 @@ const VideoScreen = ({route, navigation}) => {
           </View>
           <View style={{flexDirection: 'row'}}>
             <Text style={styles.directorTextStyle}>Director : </Text>
-            {tvShowData.production_companies.map((company, index) => (
-              <Text key={index} style={styles.companyTextStyle}>
-                {company.name}
-              </Text>
-            ))}
+            {tvShowData.production_companies &&
+              tvShowData.production_companies.map((company, index) => (
+                <Text key={index} style={styles.companyTextStyle}>
+                  {company.name}
+                </Text>
+              ))}
           </View>
         </View>
         <View
@@ -507,10 +511,10 @@ const VideoScreen = ({route, navigation}) => {
         {index === 0 && (
           <>
             <Text>Collection</Text>
-            {collectionData && collectionData.poster_path ? (
+            {collectionData && collectionData.backdrop_path ? (
               <Image
-                source={{uri: image500(collectionData.poster_path)}}
-                style={styles.collectionImage}
+                source={{uri: image500(collectionData.backdrop_path)}}
+                style={styles.collectionImageTv}
                 resizeMode="cover"
               />
             ) : (
@@ -520,7 +524,7 @@ const VideoScreen = ({route, navigation}) => {
                     tvShowData.backdrop_path || tvShowData.poster_path,
                   ),
                 }}
-                style={styles.collectionImage}
+                style={styles.collectionImageTv}
                 resizeMode="cover"
               />
             )}
@@ -534,21 +538,27 @@ const VideoScreen = ({route, navigation}) => {
                 flex: 1,
                 flexDirection: 'row',
                 flexWrap: 'wrap',
+                marginHorizontal: moderateScale(30),
                 justifyContent: 'space-evenly',
               }}>
-              {similar.map((movie, index) => (
-                <Image
-                  key={index}
-                  source={{uri: image500(movie.poster_path)}}
-                  style={[
-                    styles.similarimages,
-                    {
-                      marginBottom:
-                        index % 2 === 1 ? moderateVerticalScale(8) : 0,
-                    },
-                  ]}
-                  resizeMode="cover"
-                />
+              {similar.map((tvShow, index) => (
+                <TouchableOpacity key={index} onPress={() => {}}>
+                  {tvShow.poster_path && (
+                    <Image
+                      source={{uri: image342(tvShow.poster_path)}}
+                      style={[
+                        styles.similarimages,
+                        {
+                          marginBottom:
+                            index % 2 === 1 ? moderateVerticalScale(16) : 0,
+                          marginLeft:
+                            index === similar.length - 1 ? 0 : moderateScale(8),
+                        },
+                      ]}
+                      resizeMode="cover"
+                    />
+                  )}
+                </TouchableOpacity>
               ))}
             </View>
           </>
@@ -609,7 +619,7 @@ const VideoScreen = ({route, navigation}) => {
                       size={32}
                       rounded
                       source={{
-                        uri: 'https://randomuser.me/api/portraits/men/36.jpg',
+                        uri: 'https://comicvine.gamespot.com/a/uploads/original/11145/111457205/7969327-asta-18.jpg',
                       }}
                     />
                   </TouchableOpacity>
@@ -800,14 +810,21 @@ const styles = StyleSheet.create({
   activeTab: {
     borderBottomColor: 'blue',
   },
-  collectionImage: {
-    width: '50%',
-    height: '30%',
+
+  similarimages: {
+    width: moderateScale(130),
+    height: moderateVerticalScale(150),
     borderRadius: moderateScale(10),
     marginBottom: moderateVerticalScale(8),
   },
-  similarimages: {
-    width: moderateScale(130),
+  collectionImageTv: {
+    width: moderateScale(160),
+    height: moderateVerticalScale(150),
+    borderRadius: moderateScale(10),
+    marginBottom: moderateVerticalScale(8),
+  },
+  collectionImageMovie: {
+    width: moderateScale(160),
     height: moderateVerticalScale(150),
     borderRadius: moderateScale(10),
     marginBottom: moderateVerticalScale(8),
