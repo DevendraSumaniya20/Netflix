@@ -5,6 +5,13 @@ import ImagePath from '../constants/ImagePath';
 
 const apiBaseUrl = `https://api.themoviedb.org/3`;
 
+// account info
+
+const accountEndPoint = id =>
+  `${apiBaseUrl}/account/${id}?api_key=${MOVIEAPIKEY}`;
+
+//
+// Movies EndsPoints
 const trendingMoviesEndPoint = `${apiBaseUrl}/trending/movie/day?api_key=${MOVIEAPIKEY}`;
 const topRatedMoviesEndPoint = `${apiBaseUrl}/movie/top_rated?api_key=${MOVIEAPIKEY}`;
 const upcomingMoviesEndPoint = `${apiBaseUrl}/movie/upcoming?api_key=${MOVIEAPIKEY}`;
@@ -22,7 +29,7 @@ const movieSimilarEndPoint = id =>
 const movieSearchEndPoint = `${apiBaseUrl}/movie/search/movie?api_key=${MOVIEAPIKEY}`;
 //
 
-//
+// TvShows EndsPoints
 const trendingTvEndPoint = `${apiBaseUrl}/trending/tv/day?api_key=${MOVIEAPIKEY}`;
 const topRatedTvEndPoint = `${apiBaseUrl}/tv/top_rated?api_key=${MOVIEAPIKEY}`;
 const popularTvEndPoint = `${apiBaseUrl}/tv/popular?api_key=${MOVIEAPIKEY}`;
@@ -34,6 +41,11 @@ const tvCreditsEndPoint = id =>
 const tvSimilarEndPoint = id =>
   `${apiBaseUrl}/tv/${id}/similar?api_key=${MOVIEAPIKEY}`;
 
+//
+
+//
+
+// dynamic images
 export const image500 = path => {
   return path ? `https://image.tmdb.org/t/p/w500/${path}` : null;
 };
@@ -47,6 +59,11 @@ export const image182 = path => {
 
 export const NoImage = ImagePath.NOIMAGE;
 
+//
+
+//
+
+// api call GET
 const apiCall = async (endpoint, params) => {
   const options = {
     method: 'GET',
@@ -129,4 +146,8 @@ export const fetchTvCredits = id => {
 
 export const fetchTvSimilar = id => {
   return apiCall(tvSimilarEndPoint(id));
+};
+
+export const fetchAccountDetails = id => {
+  return apiCall(accountEndPoint, id);
 };

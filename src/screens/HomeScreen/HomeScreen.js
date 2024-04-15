@@ -63,7 +63,7 @@ const HomeScreen = ({navigation, route}) => {
                   iconName={'plus'}
                   type={'AntDesign'}
                   onPress={() => {
-                    Alert.alert('hello');
+                    navigation.navigate(navigationString.MYLISTSCREEN);
                   }}
                   size={scale(25)}
                 />

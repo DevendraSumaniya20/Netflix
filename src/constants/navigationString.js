@@ -9,4 +9,5 @@ export default {
   MORESCREEN: 'MoreScreen',
   BOTTOMTABNAVIGATION: 'BottomTabNavigation',
   VIDEOSCREEN: 'VideoScreen',
+  MYLISTSCREEN: 'MyListScreen',
 };

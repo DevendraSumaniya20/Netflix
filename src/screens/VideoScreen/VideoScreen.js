@@ -31,6 +31,7 @@ import {
 import CustomIconText from '../../components/CustomIconText';
 import CustomIcon from '../../components/CustomIcon';
 import {Avatar, Tab, ListItem} from '@rneui/themed';
+import navigationString from '../../constants/navigationString';
 
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
@@ -222,7 +223,9 @@ const VideoScreen = ({route, navigation}) => {
             iconName={'plus'}
             type={'AntDesign'}
             onPress={() => {
-              Alert.alert('hello');
+              navigation.navigate(navigationString.MYLISTSCREEN, {
+                myList: itemIdMovie,
+              });
             }}
             moreStyles={{alignItems: 'center'}}
             moreTextStyle={{textAlign: 'center'}}
