@@ -18,6 +18,8 @@ const movieCreditsEndPoint = id =>
 
 const movieSimilarEndPoint = id =>
   `${apiBaseUrl}/movie/${id}/similar?api_key=${MOVIEAPIKEY}`;
+
+const movieSearchEndPoint = `${apiBaseUrl}/movie/search/movie?api_key=${MOVIEAPIKEY}`;
 //
 
 //
@@ -95,6 +97,10 @@ export const fetchMovieCredits = id => {
 
 export const fetchMovieSimilar = id => {
   return apiCall(movieSimilarEndPoint(id));
+};
+
+export const fetchMovieSearch = params => {
+  return apiCall(movieSearchEndPoint, params);
 };
 
 export const fetchTrendingTvShows = () => {

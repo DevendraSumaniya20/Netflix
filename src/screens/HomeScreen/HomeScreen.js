@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -58,7 +58,7 @@ const HomeScreen = ({navigation, route}) => {
             <View style={styles.marginView}>
               <View style={styles.centerView}>
                 <CustomIconText
-                  color={'#fff'}
+                  color={Color.WHITE}
                   text={'My list'}
                   iconName={'plus'}
                   type={'AntDesign'}
@@ -93,7 +93,7 @@ const HomeScreen = ({navigation, route}) => {
                   }}
                 />
                 <CustomIconText
-                  color={'#fff'}
+                  color={Color.WHITE}
                   text={'info'}
                   iconName={'information-circle-sharp'}
                   type={'Ionicons'}

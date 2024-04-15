@@ -10,9 +10,8 @@ import Color from '../constants/Color';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Octicons from 'react-native-vector-icons/Octicons';
-import {moderateVerticalScale, scale} from 'react-native-size-matters';
 
-const BottomTabNavigation = () => {
+const BottomTabNavigation = ({route}) => {
   const Tab = createBottomTabNavigator();
 
   return (

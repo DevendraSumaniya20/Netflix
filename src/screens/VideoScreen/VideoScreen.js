@@ -202,6 +202,7 @@ const VideoScreen = ({route, navigation}) => {
           <View style={{flexDirection: 'row'}}>
             <Text style={styles.directorTextStyle}>Director : </Text>
             {movieData &&
+              movieData.production_companies &&
               movieData.production_companies.map((company, index) => (
                 <Text key={index} style={styles.companyTextStyle}>
                   {company.name}
