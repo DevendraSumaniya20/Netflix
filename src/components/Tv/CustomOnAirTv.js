@@ -30,6 +30,7 @@ const CustomOnAirTv = ({onPress}) => {
     try {
       const response = await fetchAiringTodayTvShows();
       setData(response?.results || []);
+      // console.log(response?.results);
     } catch (error) {
       console.error('Error fetching Airing Today TV Shows:', error);
     } finally {

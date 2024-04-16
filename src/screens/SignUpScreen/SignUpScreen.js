@@ -1,17 +1,14 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-import {
-  moderateScale,
-  moderateVerticalScale,
-  scale,
-} from 'react-native-size-matters';
+import {Text, View} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import Color from '../../constants/Color';
 import {createUserWithEmailAndPassword} from '@firebase/auth';
 import {auth} from '../../config/Firebase';
 import navigationString from '../../constants/navigationString';
+import styles from './Styles';
+import firestore from '@react-native-firebase/firestore';
 
 const SignUpScreen = ({navigation}) => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -31,7 +28,7 @@ const SignUpScreen = ({navigation}) => {
   }, []);
 
   useEffect(() => {
-    checkTokens(); // Call checkTokens function when component mounts
+    checkTokens();
   }, []);
 
   const checkTokens = async () => {
@@ -99,8 +96,13 @@ const SignUpScreen = ({navigation}) => {
       await AsyncStorage.setItem('idToken', idToken);
       await AsyncStorage.setItem('accessToken', idToken);
 
-      console.log('Access token set successfully.');
+      const newUserRef = await firestore().collection('Users').add({
+        email: email,
+        password: password,
+      });
+      console.log('User added to Firestore:', newUserRef.id);
 
+      console.log('Access token set successfully.');
       navigation.navigate(navigationString.BOTTOMTABNAVIGATION);
     } catch (error) {
       console.error('Error signing up:', error);
@@ -148,40 +150,3 @@ const SignUpScreen = ({navigation}) => {
 };
 
 export default SignUpScreen;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Color.BLACK,
-  },
-  innerContainerStyle: {
-    backgroundColor: Color.BLACK_50,
-    alignItems: 'center',
-    borderRadius: moderateScale(50),
-    width: moderateScale(370),
-    paddingHorizontal: moderateScale(16),
-    paddingVertical: moderateVerticalScale(16),
-  },
-  title: {
-    color: Color.WHITE,
-    fontSize: moderateScale(26),
-    marginBottom: moderateVerticalScale(16),
-    marginTop: moderateVerticalScale(8),
-    alignSelf: 'flex-start',
-  },
-  inputContainerStyle: {
-    width: moderateScale(343),
-    borderColor: Color.WHITE,
-    borderWidth: 1,
-    borderRadius: moderateScale(12),
-    marginBottom: moderateVerticalScale(8),
-  },
-  errorText: {
-    color: 'red',
-    fontSize: scale(12),
-    alignSelf: 'flex-start',
-    marginLeft: moderateScale(4),
-  },
-});

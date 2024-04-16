@@ -32,6 +32,7 @@ import CustomIconText from '../../components/CustomIconText';
 import CustomIcon from '../../components/CustomIcon';
 import {Avatar, Tab, ListItem} from '@rneui/themed';
 import navigationString from '../../constants/navigationString';
+import firestore from '@react-native-firebase/firestore';
 
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
@@ -40,7 +41,6 @@ const VideoScreen = ({route, navigation}) => {
   const [cast, setCast] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [genres, setGenres] = useState([]);
-  const [activeTab, setActiveTab] = useState(1);
   const [similar, setSimilar] = useState([]);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -222,11 +222,7 @@ const VideoScreen = ({route, navigation}) => {
             text={'My list'}
             iconName={'plus'}
             type={'AntDesign'}
-            onPress={() => {
-              navigation.navigate(navigationString.MYLISTSCREEN, {
-                myList: itemIdMovie,
-              });
-            }}
+            onPress={addToMyList}
             moreStyles={{alignItems: 'center'}}
             moreTextStyle={{textAlign: 'center'}}
             size={scale(25)}
@@ -462,9 +458,7 @@ const VideoScreen = ({route, navigation}) => {
             text={'My list'}
             iconName={'plus'}
             type={'AntDesign'}
-            onPress={() => {
-              Alert.alert('hello');
-            }}
+            onPress={addToMyList}
             moreStyles={{alignItems: 'center'}}
             moreTextStyle={{textAlign: 'center'}}
             size={scale(25)}
@@ -569,6 +563,43 @@ const VideoScreen = ({route, navigation}) => {
         )}
       </View>
     );
+  };
+
+  const addToMyList = async () => {
+    try {
+      let imageUrl;
+      let title;
+
+      if (itemIdMovie) {
+        const movieDetails = await fetchMovieDetails(itemIdMovie);
+        imageUrl = movieDetails.poster_path || movieDetails.backdrop_path;
+        title = movieDetails.title || movieDetails.original_title;
+      } else if (itemIdTv) {
+        const tvShowDetails = await fetchTvDetails(itemIdTv);
+        imageUrl = tvShowDetails.poster_path || tvShowDetails.backdrop_path;
+        title = tvShowDetails.name || tvShowDetails.original_name;
+      }
+
+      await firestore()
+        .collection('myList')
+        .add({
+          itemId: itemIdMovie || itemIdTv,
+          itemType: itemIdMovie ? 'movie' : 'tvShow',
+          itemImage: imageUrl,
+          title: title,
+        });
+
+      navigation.navigate(navigationString.MYLISTSCREEN, {
+        itemId: itemIdMovie || itemIdTv,
+        itemType: itemIdMovie ? 'movie' : 'tvShow',
+        itemImage: imageUrl,
+        title: title,
+      });
+
+      Alert.alert('Item added to My List successfully!');
+    } catch (error) {
+      console.error('Error adding item to My List:', error);
+    }
   };
 
   return (

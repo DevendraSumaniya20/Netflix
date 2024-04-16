@@ -19,9 +19,10 @@ import CustomBorderComponent from '../../components/CustomBorderComponent';
 import {CheckBox} from '@rneui/themed';
 import navigationString from '../../constants/navigationString';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import {signInWithEmailAndPassword} from 'firebase/auth';
+import styles from './Styles';
 import {auth} from '../../config/Firebase';
+import firestore from '@react-native-firebase/firestore';
 
 const LoginScreen = ({navigation}) => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -114,6 +115,12 @@ const LoginScreen = ({navigation}) => {
       await AsyncStorage.setItem('accessToken', idToken);
 
       console.log('Access token set successfully.');
+
+      const newUserRef = await firestore().collection('Users').add({
+        email: email,
+        password: password,
+      });
+      console.log('User added to Firestore:', newUserRef.id);
 
       navigation.navigate(navigationString.BOTTOMTABNAVIGATION, {
         screen: navigationString.HOMESCREEN,
@@ -262,43 +269,3 @@ const LoginScreen = ({navigation}) => {
 };
 
 export default LoginScreen;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  innerContainerStyle: {
-    backgroundColor: Color.BLACK_50,
-    alignItems: 'center',
-    borderRadius: moderateScale(18),
-    width: moderateScale(370),
-    paddingHorizontal: moderateScale(16),
-    paddingVertical: moderateVerticalScale(16),
-  },
-  inputContainerStyle: {
-    width: moderateScale(343),
-    borderColor: Color.WHITE,
-    borderWidth: 1,
-    borderRadius: moderateScale(12),
-    marginBottom: moderateVerticalScale(8),
-  },
-  errorText: {
-    color: 'red',
-    fontSize: scale(12),
-    alignSelf: 'flex-start',
-    marginLeft: moderateScale(4),
-  },
-  orStyleText: {
-    fontSize: scale(16),
-    color: Color.WHITE,
-    fontWeight: '500',
-    marginBottom: moderateVerticalScale(4),
-  },
-  forgotpasswordTextStyle: {
-    fontSize: scale(16),
-    fontWeight: '400',
-    color: Color.WHITE,
-  },
-});
