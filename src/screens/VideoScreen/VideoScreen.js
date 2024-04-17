@@ -45,7 +45,7 @@ const VideoScreen = ({route, navigation}) => {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const {itemIdMovie, itemIdTv} = route.params;
+  const {itemIdMovie, itemIdTv, myListMovie, myListTv} = route.params;
 
   keyExtractor = (item, index) => index.toString();
 
@@ -222,7 +222,7 @@ const VideoScreen = ({route, navigation}) => {
             text={'My list'}
             iconName={'plus'}
             type={'AntDesign'}
-            onPress={addToMyList}
+            onPress={addToMyMovieList}
             moreStyles={{alignItems: 'center'}}
             moreTextStyle={{textAlign: 'center'}}
             size={scale(25)}
@@ -458,7 +458,7 @@ const VideoScreen = ({route, navigation}) => {
             text={'My list'}
             iconName={'plus'}
             type={'AntDesign'}
-            onPress={addToMyList}
+            onPress={addToMyTvShowList}
             moreStyles={{alignItems: 'center'}}
             moreTextStyle={{textAlign: 'center'}}
             size={scale(25)}
@@ -565,40 +565,137 @@ const VideoScreen = ({route, navigation}) => {
     );
   };
 
-  const addToMyList = async () => {
+  const addToMyMovieList = async () => {
     try {
-      let imageUrl;
-      let title;
+      const movieDetails = await fetchMovieDetails(itemIdMovie);
+      const castDetails = await fetchMovieCredits(itemIdMovie);
 
-      if (itemIdMovie) {
-        const movieDetails = await fetchMovieDetails(itemIdMovie);
-        imageUrl = movieDetails.poster_path || movieDetails.backdrop_path;
-        title = movieDetails.title || movieDetails.original_title;
-      } else if (itemIdTv) {
-        const tvShowDetails = await fetchTvDetails(itemIdTv);
-        imageUrl = tvShowDetails.poster_path || tvShowDetails.backdrop_path;
-        title = tvShowDetails.name || tvShowDetails.original_name;
+      let castNames = 'Cast unavailable';
+      if (castDetails.cast && castDetails.cast.length > 0) {
+        castNames = castDetails.cast.map(member => member.name).join(', ');
       }
 
-      await firestore()
-        .collection('myList')
-        .add({
-          itemId: itemIdMovie || itemIdTv,
-          itemType: itemIdMovie ? 'movie' : 'tvShow',
-          itemImage: imageUrl,
-          title: title,
-        });
+      let imageUrl = movieDetails.poster_path || movieDetails.backdrop_path;
+      let title = movieDetails.title || movieDetails.original_title;
+      let overview = movieDetails.overview;
+      let genres = movieDetails.genres
+        ? movieDetails.genres.map(genre => genre.name).join(', ')
+        : 'Genres unavailable';
 
-      navigation.navigate(navigationString.MYLISTSCREEN, {
-        itemId: itemIdMovie || itemIdTv,
-        itemType: itemIdMovie ? 'movie' : 'tvShow',
+      let runtime = `${Math.floor(movieDetails.runtime / 60)}h ${movieDetails.runtime % 60}m`;
+      let releaseYear = movieDetails.release_date
+        ? movieDetails.release_date.split('-')[0]
+        : 'Release date unavailable';
+
+      const existingItemQuery = await firestore()
+        .collection('myList')
+        .where('itemId', '==', itemIdMovie)
+        .limit(1)
+        .get();
+
+      if (!existingItemQuery.empty) {
+        Alert.alert('Item already added to My List!');
+        return;
+      }
+
+      const addItemResponse = await firestore().collection('myList').add({
+        itemId: itemIdMovie,
+        itemType: 'movie',
         itemImage: imageUrl,
         title: title,
+        overview: overview,
+        genres: genres,
+        cast: castNames,
+        runtime: runtime,
+        releaseYear: releaseYear,
       });
 
-      Alert.alert('Item added to My List successfully!');
+      if (addItemResponse) {
+        navigation.navigate(navigationString.MYLISTSCREEN, {
+          itemId: itemIdMovie,
+          itemType: 'movie',
+          itemImage: imageUrl,
+          title: title,
+          overview: overview,
+          genres: genres,
+          cast: castNames,
+          runtime: runtime,
+          releaseYear: releaseYear,
+        });
+        Alert.alert('Movie added to My List successfully!');
+      }
     } catch (error) {
-      console.error('Error adding item to My List:', error);
+      console.error('Error adding movie to My List:', error);
+    }
+  };
+
+  const addToMyTvShowList = async () => {
+    try {
+      const tvShowDetails = await fetchTvDetails(itemIdTv);
+      const castDetails = await fetchTvCredits(itemIdTv);
+
+      let castNames = 'Cast unavailable';
+      if (castDetails.cast && castDetails.cast.length > 0) {
+        castNames = castDetails.cast.map(member => member.name).join(', ');
+      }
+
+      let imageUrl = tvShowDetails.poster_path || tvShowDetails.backdrop_path;
+      let title = tvShowDetails.name || tvShowDetails.original_name;
+      let overview = tvShowDetails.overview;
+      let genres = tvShowDetails.genres
+        ? tvShowDetails.genres.map(genre => genre.name).join(', ')
+        : 'Genres unavailable';
+      let cast = tvShowDetails.cast
+        ? tvShowDetails.cast.map(actor => actor.name).join(', ')
+        : 'Cast unavailable';
+      let runtime =
+        tvShowDetails.episode_run_time &&
+        tvShowDetails.episode_run_time.length > 0
+          ? `${Math.floor(tvShowDetails.episode_run_time[0] / 60)}h ${tvShowDetails.episode_run_time[0] % 60}m`
+          : 'N/A';
+      let releaseYear = tvShowDetails.first_air_date
+        ? tvShowDetails.first_air_date.split('-')[0]
+        : 'Release date unavailable';
+
+      const existingItemQuery = await firestore()
+        .collection('myList')
+        .where('itemId', '==', itemIdTv)
+        .limit(1)
+        .get();
+
+      if (!existingItemQuery.empty) {
+        Alert.alert('Item already added to My List!');
+        return;
+      }
+
+      const addItemResponse = await firestore().collection('myList').add({
+        itemId: itemIdTv,
+        itemType: 'tvShow',
+        itemImage: imageUrl,
+        title: title,
+        overview: overview,
+        genres: genres,
+        cast: castNames,
+        runtime: runtime,
+        releaseYear: releaseYear,
+      });
+
+      if (addItemResponse) {
+        navigation.navigate(navigationString.MYLISTSCREEN, {
+          itemId: itemIdTv,
+          itemType: 'tvShow',
+          itemImage: imageUrl,
+          title: title,
+          overview: overview,
+          genres: genres,
+          cast: castNames,
+          runtime: runtime,
+          releaseYear: releaseYear,
+        });
+        Alert.alert('TV show added to My List successfully!');
+      }
+    } catch (error) {
+      console.error('Error adding TV show to My List:', error);
     }
   };
 

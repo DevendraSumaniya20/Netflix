@@ -12,7 +12,9 @@
   self.initialProps = @{};
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
-  [FIRApp configure];
+ if ([FIRApp defaultApp] == nil) {
+ [FIRApp configure]; 
+}
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge

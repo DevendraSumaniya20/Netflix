@@ -13,12 +13,10 @@ const firebaseConfig = {
   measurementId: 'G-5560W0GSLV',
 };
 
-const app = initializeApp(firebaseConfig);
-
+export const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-const auth = initializeAuth(app, {
+export const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage),
 });
 
-export {app, db, auth};
+export default db;
