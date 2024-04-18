@@ -17,47 +17,39 @@ import {
 import CustomIcon from '../../components/CustomIcon';
 import {image342} from '../../utils/Movie';
 import navigationString from '../../constants/navigationString';
+import {auth} from '../../config/Firebase';
 
 const MyListScreen = ({navigation, route}) => {
-  const [moviesList, setMoviesList] = useState([]);
-  const [tvShowsList, setTvShowsList] = useState([]);
+  const [list, setList] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = firestore()
-      .collection('myList')
-      .onSnapshot(snapshot => {
-        const list = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+    const unsubscribeAuth = auth.onAuthStateChanged(user => {
+      if (user) {
+        firestore()
+          .collection('myList')
+          .where('userId', '==', user.uid)
+          .onSnapshot(snapshot => {
+            const data = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
 
-        const movies = list.filter(item => item.itemType === 'movie');
-        const tvShows = list.filter(item => item.itemType === 'tvShow');
+            console.log(data);
+            setList(data);
+          });
+      } else {
+        console.error('No authenticated user found');
+      }
+    });
 
-        setMoviesList(movies);
-        setTvShowsList(tvShows);
-      });
-
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
 
   const navigateToVideoScreen = item => {
-    navigation.navigate(navigationString.VIDEOSCREEN, {
-      myListMovie: item,
-      myListTv: item,
-    });
+    navigation.navigate(navigationString.VIDEOSCREEN, {myListItem: item});
   };
 
-  const renderMovieItem = ({item}) => (
-    <TouchableOpacity onPress={() => navigateToVideoScreen(item)}>
-      <View style={styles.itemContainer}>
-        <Image source={{uri: image342(item.itemImage)}} style={styles.image} />
-        <Text style={styles.title}>{item.title}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderTVShowItem = ({item}) => (
+  const renderItem = ({item}) => (
     <TouchableOpacity onPress={() => navigateToVideoScreen(item)}>
       <View style={styles.itemContainer}>
         <Image source={{uri: image342(item.itemImage)}} style={styles.image} />
@@ -81,41 +73,21 @@ const MyListScreen = ({navigation, route}) => {
         <View style={{width: scale(24)}} />
       </View>
       <View style={styles.contentContainer}>
-        {moviesList.length === 0 && tvShowsList.length === 0 ? (
+        {list.length === 0 ? (
           <Text style={styles.emptyListMessage}>
             Please add some data to the list first.
           </Text>
         ) : (
-          <>
-            <View style={styles.listContainer}>
-              <Text style={styles.subHeading}>Movies</Text>
-              {moviesList.length === 0 ? (
-                <Text style={styles.emptyListMessage}>
-                  You need to add some movies to your list.
-                </Text>
-              ) : (
-                <FlatList
-                  data={moviesList}
-                  renderItem={renderMovieItem}
-                  keyExtractor={item => item.id}
-                />
-              )}
-            </View>
-            <View style={styles.listContainer}>
-              <Text style={styles.subHeading}>TV Shows</Text>
-              {tvShowsList.length === 0 ? (
-                <Text style={styles.emptyListMessage}>
-                  You need to add some TV shows to your list.
-                </Text>
-              ) : (
-                <FlatList
-                  data={tvShowsList}
-                  renderItem={renderTVShowItem}
-                  keyExtractor={item => item.id}
-                />
-              )}
-            </View>
-          </>
+          <FlatList
+            data={list}
+            renderItem={renderItem}
+            keyExtractor={item => item.id}
+            style={{flex: 1}}
+            contentContainerStyle={{
+              paddingHorizontal: moderateScale(16),
+              paddingTop: moderateVerticalScale(16),
+            }}
+          />
         )}
       </View>
     </View>
@@ -143,21 +115,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: moderateScale(16),
-    paddingTop: moderateVerticalScale(16),
-  },
-  listContainer: {
-    flex: 1,
-    marginLeft: 10,
-    marginRight: 10,
-  },
-  subHeading: {
-    fontSize: scale(16),
-    fontWeight: '700',
-    marginBottom: moderateVerticalScale(8),
-    color: Color.WHITE,
   },
   itemContainer: {
     marginBottom: 20,

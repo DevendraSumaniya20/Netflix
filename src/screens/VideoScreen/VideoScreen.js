@@ -32,7 +32,9 @@ import CustomIconText from '../../components/CustomIconText';
 import CustomIcon from '../../components/CustomIcon';
 import {Avatar, Tab, ListItem} from '@rneui/themed';
 import navigationString from '../../constants/navigationString';
+import {auth} from '../../config/Firebase';
 import firestore from '@react-native-firebase/firestore';
+import uuid from 'react-native-uuid';
 
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
@@ -45,9 +47,20 @@ const VideoScreen = ({route, navigation}) => {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const {itemIdMovie, itemIdTv, myListMovie, myListTv} = route.params;
+  const {itemIdMovie, itemIdTv, myListItem} = route.params;
 
   keyExtractor = (item, index) => index.toString();
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      navigation.navigate(navigationString.LOGINSCREEN);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -567,12 +580,22 @@ const VideoScreen = ({route, navigation}) => {
 
   const addToMyMovieList = async () => {
     try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        console.error('No authenticated user found');
+        return;
+      }
+
       const movieDetails = await fetchMovieDetails(itemIdMovie);
       const castDetails = await fetchMovieCredits(itemIdMovie);
+      const similarMovieDetails = await fetchMovieSimilar(itemIdMovie);
 
-      let castNames = 'Cast unavailable';
+      let cast = [];
       if (castDetails.cast && castDetails.cast.length > 0) {
-        castNames = castDetails.cast.map(member => member.name).join(', ');
+        cast = castDetails.cast.map(member => ({
+          name: member.name,
+          // profilePath: member.profile_path,
+        }));
       }
 
       let imageUrl = movieDetails.poster_path || movieDetails.backdrop_path;
@@ -581,15 +604,19 @@ const VideoScreen = ({route, navigation}) => {
       let genres = movieDetails.genres
         ? movieDetails.genres.map(genre => genre.name).join(', ')
         : 'Genres unavailable';
-
       let runtime = `${Math.floor(movieDetails.runtime / 60)}h ${movieDetails.runtime % 60}m`;
       let releaseYear = movieDetails.release_date
         ? movieDetails.release_date.split('-')[0]
         : 'Release date unavailable';
 
+      const itemId = uuid.v4();
+
+      const userId = currentUser.uid;
+
       const existingItemQuery = await firestore()
         .collection('myList')
         .where('itemId', '==', itemIdMovie)
+        .where('userId', '==', userId)
         .limit(1)
         .get();
 
@@ -599,29 +626,20 @@ const VideoScreen = ({route, navigation}) => {
       }
 
       const addItemResponse = await firestore().collection('myList').add({
-        itemId: itemIdMovie,
+        itemId: itemId,
+        userId: userId,
         itemType: 'movie',
         itemImage: imageUrl,
         title: title,
         overview: overview,
         genres: genres,
-        cast: castNames,
+        cast: cast,
         runtime: runtime,
         releaseYear: releaseYear,
+        similarMovies: similarMovieDetails.results,
       });
 
       if (addItemResponse) {
-        navigation.navigate(navigationString.MYLISTSCREEN, {
-          itemId: itemIdMovie,
-          itemType: 'movie',
-          itemImage: imageUrl,
-          title: title,
-          overview: overview,
-          genres: genres,
-          cast: castNames,
-          runtime: runtime,
-          releaseYear: releaseYear,
-        });
         Alert.alert('Movie added to My List successfully!');
       }
     } catch (error) {
@@ -631,12 +649,22 @@ const VideoScreen = ({route, navigation}) => {
 
   const addToMyTvShowList = async () => {
     try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        console.error('No authenticated user found');
+        return;
+      }
+
       const tvShowDetails = await fetchTvDetails(itemIdTv);
       const castDetails = await fetchTvCredits(itemIdTv);
+      const similarMovieDetails = await fetchTvSimilar(itemIdTv);
 
-      let castNames = 'Cast unavailable';
+      let cast = [];
       if (castDetails.cast && castDetails.cast.length > 0) {
-        castNames = castDetails.cast.map(member => member.name).join(', ');
+        cast = castDetails.cast.map(member => ({
+          name: member.name,
+          // profilePath: member.profile_path,
+        }));
       }
 
       let imageUrl = tvShowDetails.poster_path || tvShowDetails.backdrop_path;
@@ -645,9 +673,7 @@ const VideoScreen = ({route, navigation}) => {
       let genres = tvShowDetails.genres
         ? tvShowDetails.genres.map(genre => genre.name).join(', ')
         : 'Genres unavailable';
-      let cast = tvShowDetails.cast
-        ? tvShowDetails.cast.map(actor => actor.name).join(', ')
-        : 'Cast unavailable';
+
       let runtime =
         tvShowDetails.episode_run_time &&
         tvShowDetails.episode_run_time.length > 0
@@ -657,9 +683,14 @@ const VideoScreen = ({route, navigation}) => {
         ? tvShowDetails.first_air_date.split('-')[0]
         : 'Release date unavailable';
 
+      const itemId = uuid.v4();
+
+      const userId = currentUser.uid;
+
       const existingItemQuery = await firestore()
         .collection('myList')
         .where('itemId', '==', itemIdTv)
+        .where('userId', '==', userId)
         .limit(1)
         .get();
 
@@ -669,33 +700,24 @@ const VideoScreen = ({route, navigation}) => {
       }
 
       const addItemResponse = await firestore().collection('myList').add({
-        itemId: itemIdTv,
-        itemType: 'tvShow',
+        itemId: itemId,
+        userId: userId,
+        itemType: 'tv',
         itemImage: imageUrl,
         title: title,
         overview: overview,
         genres: genres,
-        cast: castNames,
+        cast: cast,
         runtime: runtime,
         releaseYear: releaseYear,
+        similarMovies: similarMovieDetails.results,
       });
 
       if (addItemResponse) {
-        navigation.navigate(navigationString.MYLISTSCREEN, {
-          itemId: itemIdTv,
-          itemType: 'tvShow',
-          itemImage: imageUrl,
-          title: title,
-          overview: overview,
-          genres: genres,
-          cast: castNames,
-          runtime: runtime,
-          releaseYear: releaseYear,
-        });
-        Alert.alert('TV show added to My List successfully!');
+        Alert.alert('Tv Show added to My List successfully!');
       }
     } catch (error) {
-      console.error('Error adding TV show to My List:', error);
+      console.error('Error adding Tv show to My List:', error);
     }
   };
 

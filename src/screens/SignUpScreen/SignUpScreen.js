@@ -9,6 +9,7 @@ import {auth} from '../../config/Firebase';
 import navigationString from '../../constants/navigationString';
 import styles from './Styles';
 import firestore from '@react-native-firebase/firestore';
+import uuid from 'react-native-uuid';
 
 const SignUpScreen = ({navigation}) => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -85,6 +86,19 @@ const SignUpScreen = ({navigation}) => {
     if (emailError || passwordError) return;
 
     try {
+      const userSnapshot = await firestore()
+        .collection('Users')
+        .where('email', '==', email)
+        .get();
+
+      if (!userSnapshot.empty) {
+        console.error('Sign-in error: Email is already in use');
+
+        return;
+      }
+
+      const userId = uuid.v4();
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -96,13 +110,13 @@ const SignUpScreen = ({navigation}) => {
       await AsyncStorage.setItem('idToken', idToken);
       await AsyncStorage.setItem('accessToken', idToken);
 
-      const newUserRef = await firestore().collection('Users').add({
+      const newUserRef = await firestore().collection('Users').doc(userId).set({
+        userId: userId,
         email: email,
         password: password,
       });
-      console.log('User added to Firestore:', newUserRef.id);
+      console.log('User added to Firestore with UUID:', userId);
 
-      console.log('Access token set successfully.');
       navigation.navigate(navigationString.BOTTOMTABNAVIGATION);
     } catch (error) {
       console.error('Error signing up:', error);

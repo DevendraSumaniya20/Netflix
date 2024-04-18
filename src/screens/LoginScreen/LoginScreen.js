@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   ImageBackground,
   StyleSheet,
   Text,
@@ -23,6 +24,7 @@ import {signInWithEmailAndPassword} from 'firebase/auth';
 import styles from './Styles';
 import {auth} from '../../config/Firebase';
 import firestore from '@react-native-firebase/firestore';
+import uuid from 'react-native-uuid';
 
 const LoginScreen = ({navigation}) => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -31,6 +33,7 @@ const LoginScreen = ({navigation}) => {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleEmailChange = useCallback(text => {
     setEmail(text);
@@ -100,27 +103,33 @@ const LoginScreen = ({navigation}) => {
 
   const handleSignIn = async () => {
     try {
+      setLoading(true);
+
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password,
       );
       const user = userCredential.user;
-      console.log('User signed in:', user);
+
+      const userRef = firestore().collection('Users').doc(user.uid);
+
+      const userSnapshot = await userRef.get();
+
+      // if (userSnapshot.exists) {
+      //   setLoading(false);
+      //   console.error('Sign-in error: Email is already in use');
+      //   return;
+      // }
 
       const idToken = await user.getIdToken();
-      console.log('ID token:', idToken);
-
       await AsyncStorage.setItem('idToken', idToken);
       await AsyncStorage.setItem('accessToken', idToken);
 
-      console.log('Access token set successfully.');
-
-      const newUserRef = await firestore().collection('Users').add({
-        email: email,
-        password: password,
+      await userRef.set({
+        userId: user.uid,
+        email: user.email,
       });
-      console.log('User added to Firestore:', newUserRef.id);
 
       navigation.navigate(navigationString.BOTTOMTABNAVIGATION, {
         screen: navigationString.HOMESCREEN,
@@ -128,6 +137,8 @@ const LoginScreen = ({navigation}) => {
     } catch (error) {
       const errorMessage = error.message;
       console.error('Sign-in error:', errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -137,6 +148,7 @@ const LoginScreen = ({navigation}) => {
     <ImageBackground
       source={ImagePath.BACKGROUND}
       style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      {loading && <ActivityIndicator size="large" color={Color.WHITE} />}
       <View style={styles.container}>
         <View style={styles.innerContainerStyle}>
           <Text
