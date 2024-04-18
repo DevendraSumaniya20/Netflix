@@ -6,6 +6,7 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import Color from '../../constants/Color';
@@ -21,6 +22,7 @@ import {auth} from '../../config/Firebase';
 
 const MyListScreen = ({navigation, route}) => {
   const [list, setList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(user => {
@@ -34,7 +36,8 @@ const MyListScreen = ({navigation, route}) => {
               ...doc.data(),
             }));
 
-            console.log(data);
+            // console.log(data);
+            setIsLoading(false);
             setList(data);
           });
       } else {
@@ -74,9 +77,13 @@ const MyListScreen = ({navigation, route}) => {
       </View>
       <View style={styles.contentContainer}>
         {list.length === 0 ? (
-          <Text style={styles.emptyListMessage}>
-            Please add some data to the list first.
-          </Text>
+          isLoading ? (
+            <ActivityIndicator size="large" color={Color.RED} />
+          ) : (
+            <Text style={styles.emptyListMessage}>
+              Please add some data to the list first.
+            </Text>
+          )
         ) : (
           <FlatList
             data={list}
