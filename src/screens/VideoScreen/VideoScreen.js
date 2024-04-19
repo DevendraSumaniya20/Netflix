@@ -35,6 +35,7 @@ import navigationString from '../../constants/navigationString';
 import {auth} from '../../config/Firebase';
 import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
+import ImagePath from '../../constants/ImagePath';
 
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
@@ -52,11 +53,13 @@ const VideoScreen = ({route, navigation}) => {
   keyExtractor = (item, index) => index.toString();
 
   useEffect(() => {
-    checkAuthStatus();
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      checkAuthStatus(currentUser);
+    }
   }, []);
 
-  const checkAuthStatus = () => {
-    const currentUser = auth.currentUser;
+  const checkAuthStatus = currentUser => {
     if (!currentUser) {
       navigation.navigate(navigationString.LOGINSCREEN);
     }
@@ -64,15 +67,15 @@ const VideoScreen = ({route, navigation}) => {
 
   useEffect(() => {
     fetchData();
-  }, [itemIdMovie, itemIdTv]);
+  }, [itemIdMovie, itemIdTv, myListItem]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      if (itemIdMovie) {
-        const movieDetails = await fetchMovieDetails(itemIdMovie);
-        const credits = await fetchMovieCredits(itemIdMovie);
-        const similarData = await fetchMovieSimilar(itemIdMovie);
+      if (itemIdMovie || myListItem) {
+        const movieDetails = await fetchMovieDetails(itemIdMovie || myListItem);
+        const credits = await fetchMovieCredits(itemIdMovie || myListItem);
+        const similarData = await fetchMovieSimilar(itemIdMovie || myListItem);
         setMovieData(movieDetails);
         setCast(credits.cast);
         setGenres(movieDetails.genres);
@@ -80,10 +83,10 @@ const VideoScreen = ({route, navigation}) => {
       }
 
       if (itemIdTv) {
-        const tvData = await fetchTvDetails(itemIdTv);
+        const tvData = await fetchTvDetails(itemIdTv || myListItem);
 
-        const credits = await fetchTvCredits(itemIdTv);
-        const similarTvData = await fetchTvSimilar(itemIdTv);
+        const credits = await fetchTvCredits(itemIdTv || myListItem);
+        const similarTvData = await fetchTvSimilar(itemIdTv || myListItem);
         setTvShowData(tvData);
         setCast(credits.cast);
         setGenres(tvData.genres);
@@ -94,7 +97,7 @@ const VideoScreen = ({route, navigation}) => {
     } finally {
       setLoading(false);
     }
-  }, [itemIdMovie, itemIdTv]);
+  }, [itemIdMovie, itemIdTv, myListItem]);
 
   const toggleModal = () => {
     setShowModal(!showModal);
@@ -106,8 +109,12 @@ const VideoScreen = ({route, navigation}) => {
     let release_year;
     if (movieData.release_date) {
       release_year = movieData.release_date.split('-')[0];
+    } else if (myListItem && myListItem.release_date) {
+      release_year = myListItem.release_date.split('-')[0];
+    } else if (myListItem && myListItem.releaseYear) {
+      release_year = myListItem.releaseYear;
     } else {
-      release_year = 'Release date unavailable';
+      release_year = 'Release Year Not Available';
     }
 
     const collectionData = movieData.belongs_to_collection;
@@ -116,13 +123,17 @@ const VideoScreen = ({route, navigation}) => {
       <View style={{flex: 1}}>
         <Image
           source={{
-            uri: image500(movieData.backdrop_path || movieData.poster_path),
+            uri: myListItem
+              ? image500(myListItem.itemImage)
+              : image500(movieData.backdrop_path || movieData.poster_path),
           }}
           style={styles.poster}
           resizeMode="cover"
         />
         <Text style={styles.titleTextStyle}>
-          {movieData.title || movieData.original_title}
+          {myListItem
+            ? myListItem.title
+            : movieData.title || movieData.original_title}
         </Text>
 
         {/* <Text style={styles.textStyle}>{movieData.id}</Text> */}
@@ -135,10 +146,14 @@ const VideoScreen = ({route, navigation}) => {
           <Text style={styles.releasedateTextStyle}>{release_year}</Text>
           {movieData.adult === false ? (
             <Text style={styles.underAgeTextStyle}>U/A 16+</Text>
-          ) : null}
+          ) : (
+            <Text style={styles.underAgeTextStyle}>U/A 16+</Text>
+          )}
 
           <Text style={styles.runtimeTextStyle}>
-            {Math.floor(movieData.runtime / 60)}h {movieData.runtime % 60}m
+            {myListItem && myListItem.runtime
+              ? myListItem.runtime
+              : `${Math.floor(movieData.runtime / 60)}h ${movieData.runtime % 60}m`}
           </Text>
         </View>
 
@@ -196,10 +211,13 @@ const VideoScreen = ({route, navigation}) => {
           }}
         />
         <View>
-          <Text style={styles.overviewTextStyle}>{movieData.overview}</Text>
+          <Text style={styles.overviewTextStyle}>
+            {myListItem ? myListItem.overview : movieData.overview}
+          </Text>
 
           <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
             <Text style={styles.StarringOverViewTextStyle}>Starring:</Text>
+
             {cast &&
               cast.slice(0, 4).map((actor, index) => (
                 <Text key={index} style={[styles.StarringTextStyle]}>
@@ -207,21 +225,45 @@ const VideoScreen = ({route, navigation}) => {
                 </Text>
               ))}
 
-            {cast && cast.length > 4 && (
-              <TouchableOpacity onPress={toggleModal}>
-                <Text style={styles.moreTextStyle}>... more</Text>
-              </TouchableOpacity>
-            )}
+            {myListItem &&
+              myListItem.cast &&
+              myListItem.cast.length > 0 &&
+              myListItem.cast.slice(0, 4).map((actor, index) => (
+                <Text key={index} style={[styles.StarringTextStyle]}>
+                  {actor.name}
+                </Text>
+              ))}
+
+            {(cast && cast.length > 4) ||
+              (myListItem && myListItem.cast && myListItem.cast.length > 4 && (
+                <TouchableOpacity onPress={toggleModal}>
+                  <Text style={styles.moreTextStyle}>... more</Text>
+                </TouchableOpacity>
+              ))}
           </View>
+
           <View style={{flexDirection: 'row'}}>
             <Text style={styles.directorTextStyle}>Director : </Text>
-            {movieData &&
+
+            {myListItem &&
+            myListItem.productionCompanies &&
+            myListItem.productionCompanies.length > 0 ? (
+              myListItem.productionCompanies.map((company, index) => (
+                <Text key={index} style={styles.companyTextStyle}>
+                  {company}
+                </Text>
+              ))
+            ) : movieData &&
               movieData.production_companies &&
+              movieData.production_companies.length > 0 ? (
               movieData.production_companies.map((company, index) => (
                 <Text key={index} style={styles.companyTextStyle}>
                   {company.name}
                 </Text>
-              ))}
+              ))
+            ) : (
+              <Text style={styles.companyTextStyle}>Unknown</Text>
+            )}
           </View>
         </View>
         <View
@@ -286,16 +328,18 @@ const VideoScreen = ({route, navigation}) => {
           <>
             {collectionData && collectionData.poster_path ? (
               <Image
-                source={{uri: image500(collectionData.poster_path)}}
+                source={{uri: image500(collectionData.backdrop_path)}}
                 style={styles.collectionImageMovie}
                 resizeMode="cover"
               />
             ) : (
               <Image
                 source={{
-                  uri: image500(
-                    movieData.backdrop_path || movieData.poster_path,
-                  ),
+                  uri: myListItem
+                    ? image500(myListItem.itemImage)
+                    : image500(
+                        movieData.backdrop_path || movieData.poster_path,
+                      ),
                 }}
                 style={styles.collectionImageMovie}
                 resizeMode="cover"
@@ -316,7 +360,11 @@ const VideoScreen = ({route, navigation}) => {
               {similar.map((movie, index) => (
                 <Image
                   key={index}
-                  source={{uri: image500(movie.poster_path)}}
+                  source={{
+                    uri: movie.poster_path
+                      ? image500(movie.poster_path)
+                      : ImagePath.NOIMAGE,
+                  }}
                   style={[
                     styles.similarimages,
                     {
@@ -327,6 +375,27 @@ const VideoScreen = ({route, navigation}) => {
                   resizeMode="cover"
                 />
               ))}
+
+              {myListItem &&
+                myListItem.similarMovies &&
+                myListItem.similarMovies.map((movie, index) => (
+                  <Image
+                    key={index}
+                    source={{
+                      uri: movie.poster_path
+                        ? image500(movie.poster_path)
+                        : image500(ImagePath.NOIMAGE),
+                    }}
+                    style={[
+                      styles.similarimages,
+                      {
+                        marginBottom:
+                          index % 2 === 1 ? moderateVerticalScale(8) : 0,
+                      },
+                    ]}
+                    resizeMode="cover"
+                  />
+                ))}
             </View>
           </>
         )}
@@ -556,7 +625,11 @@ const VideoScreen = ({route, navigation}) => {
                 <TouchableOpacity key={index} onPress={() => {}}>
                   {tvShow.poster_path && (
                     <Image
-                      source={{uri: image342(tvShow.poster_path)}}
+                      source={{
+                        uri: tvShow.poster_path
+                          ? image500(tvShow.poster_path)
+                          : image500(ImagePath.NOIMAGE),
+                      }}
                       style={[
                         styles.similarimages,
                         {
@@ -598,6 +671,16 @@ const VideoScreen = ({route, navigation}) => {
         }));
       }
 
+      let productionCompanies = [];
+      if (
+        movieDetails.production_companies &&
+        movieDetails.production_companies.length > 0
+      ) {
+        productionCompanies = movieDetails.production_companies.map(
+          company => company.name,
+        );
+      }
+
       let imageUrl = movieDetails.poster_path || movieDetails.backdrop_path;
       let title = movieDetails.title || movieDetails.original_title;
       let overview = movieDetails.overview;
@@ -637,6 +720,7 @@ const VideoScreen = ({route, navigation}) => {
         runtime: runtime,
         releaseYear: releaseYear,
         similarMovies: similarMovieDetails.results,
+        productionCompanies: productionCompanies,
       });
 
       if (addItemResponse) {
@@ -665,6 +749,16 @@ const VideoScreen = ({route, navigation}) => {
           name: member.name,
           // profilePath: member.profile_path,
         }));
+      }
+
+      let productionCompanies = [];
+      if (
+        tvShowDetails.production_companies &&
+        tvShowDetails.production_companies.length > 0
+      ) {
+        productionCompanies = tvShowDetails.production_companies.map(
+          company => company.name,
+        );
       }
 
       let imageUrl = tvShowDetails.poster_path || tvShowDetails.backdrop_path;
@@ -711,6 +805,7 @@ const VideoScreen = ({route, navigation}) => {
         runtime: runtime,
         releaseYear: releaseYear,
         similarMovies: similarMovieDetails.results,
+        productionCompanies: productionCompanies,
       });
 
       if (addItemResponse) {
