@@ -36,7 +36,7 @@ const HomeScreen = ({navigation, route}) => {
           <SafeAreaView style={styles.container}>
             <View style={styles.backgroundContainer}>
               <ImageBackground
-                source={ImagePath.DEMOIMAGE}
+                source={ImagePath.DEMOIMAGE_2}
                 style={styles.backgroundImage}>
                 <View style={styles.topView}>
                   <Image source={ImagePath.SYMBOL} style={styles.logo} />
@@ -51,7 +51,7 @@ const HomeScreen = ({navigation, route}) => {
                   </TouchableOpacity>
                 </View>
                 <View style={styles.downView}>
-                  <Text style={styles.downViewTextStyle}>Movies name</Text>
+                  {/* <Text style={styles.downViewTextStyle}>Movies name</Text> */}
                 </View>
               </ImageBackground>
             </View>
