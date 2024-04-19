@@ -36,7 +36,6 @@ const MyListScreen = ({navigation, route}) => {
               ...doc.data(),
             }));
 
-            // console.log(data);
             setIsLoading(false);
             setList(data);
           });
@@ -54,66 +53,74 @@ const MyListScreen = ({navigation, route}) => {
 
   const renderItem = ({item}) => (
     <TouchableOpacity onPress={() => navigateToVideoScreen(item)}>
-      <View style={styles.itemContainer}>
+      <View style={styles.viewpic}>
         <Image source={{uri: image342(item.itemImage)}} style={styles.image} />
-        <Text style={styles.title}>{item.title}</Text>
+        {/* <Text style={styles.title}>{item.title}</Text> */}
       </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <CustomIcon
-            name={'arrow-back-outline'}
-            color={Color.WHITE}
-            size={scale(24)}
-            type="Ionicons"
-          />
-        </TouchableOpacity>
-        <Text style={styles.heading}>My List</Text>
-        <View style={{width: scale(24)}} />
-      </View>
-      <View style={styles.contentContainer}>
-        {list.length === 0 ? (
-          isLoading ? (
-            <ActivityIndicator size="large" color={Color.RED} />
+      <View style={styles.marginContainer}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <CustomIcon
+              name={'arrow-back-outline'}
+              color={Color.WHITE}
+              size={scale(24)}
+              type="Ionicons"
+            />
+          </TouchableOpacity>
+          <Text style={styles.heading}>My List</Text>
+          <View style={{width: scale(24)}} />
+        </View>
+        <View style={styles.contentContainer}>
+          {list.length === 0 ? (
+            isLoading ? (
+              <ActivityIndicator size="large" color={Color.RED} />
+            ) : (
+              <Text style={styles.emptyListMessage}>
+                Please add some data to the list first.
+              </Text>
+            )
           ) : (
-            <Text style={styles.emptyListMessage}>
-              Please add some data to the list first.
-            </Text>
-          )
-        ) : (
-          <FlatList
-            data={list}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            style={{flex: 1}}
-            contentContainerStyle={{
-              paddingHorizontal: moderateScale(16),
-              paddingTop: moderateVerticalScale(16),
-            }}
-          />
-        )}
+            <FlatList
+              data={list}
+              renderItem={renderItem}
+              keyExtractor={item => item.id}
+              style={{flex: 1}}
+              contentContainerStyle={styles.flatListContainer}
+              numColumns={3}
+            />
+          )}
+        </View>
       </View>
     </View>
   );
 };
-
-export default MyListScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Color.BLACK,
   },
+
+  marginContainer: {
+    marginHorizontal: moderateScale(16),
+    marginTop: moderateVerticalScale(4),
+    flex: 1,
+  },
+  image: {
+    height: moderateVerticalScale(115),
+    width: moderateScale(100),
+    marginHorizontal: moderateScale(6),
+    marginBottom: moderateScale(8),
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: moderateScale(16),
-    paddingTop: moderateVerticalScale(16),
   },
   heading: {
     fontSize: scale(24),
@@ -123,25 +130,22 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
   },
-  itemContainer: {
-    marginBottom: 20,
-    alignItems: 'center',
+  flatListContainer: {
+    marginTop: moderateVerticalScale(8),
   },
-  image: {
-    width: moderateScale(150),
-    height: moderateVerticalScale(150),
-    resizeMode: 'cover',
-  },
+
   title: {
     fontSize: scale(18),
-    marginTop: 10,
+    marginTop: moderateVerticalScale(10),
     textAlign: 'center',
     color: Color.WHITE,
   },
   emptyListMessage: {
     fontSize: scale(16),
-    marginTop: 20,
+    marginTop: moderateVerticalScale(20),
     textAlign: 'center',
     color: Color.WHITE,
   },
 });
+
+export default MyListScreen;

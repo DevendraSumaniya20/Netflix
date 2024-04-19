@@ -14,10 +14,12 @@ const CustomIconText = ({
   flexDirection,
   moreStyles,
   moreTextStyle,
+  disabled,
 }) => {
   return (
     <View style={[styles.container, {flexDirection: flexDirection}]}>
       <TouchableOpacity
+        disabled={disabled}
         onPress={onPress}
         activeOpacity={0.8}
         style={[

@@ -704,12 +704,23 @@ const VideoScreen = ({route, navigation}) => {
         .get();
 
       if (!existingItemQuery.empty) {
-        Alert.alert('Item already added to My List!');
+        console.log('Item already added to My List!');
+        return;
+      }
+
+      const existingItems = await firestore()
+        .collection('myList')
+        .where('itemId', '==', itemId)
+        .limit(1)
+        .get();
+
+      if (!existingItems.empty) {
+        console.log('Item already exists in the list!');
         return;
       }
 
       const addItemResponse = await firestore().collection('myList').add({
-        itemId: itemId,
+        itemId: itemIdMovie,
         userId: userId,
         itemType: 'movie',
         itemImage: imageUrl,
@@ -724,7 +735,7 @@ const VideoScreen = ({route, navigation}) => {
       });
 
       if (addItemResponse) {
-        Alert.alert('Movie added to My List successfully!');
+        console.log('Movie added to My List successfully!');
       }
     } catch (error) {
       console.error('Error adding movie to My List:', error);
@@ -789,12 +800,23 @@ const VideoScreen = ({route, navigation}) => {
         .get();
 
       if (!existingItemQuery.empty) {
-        Alert.alert('Item already added to My List!');
+        console.log('Item already added to My List!');
+        return;
+      }
+
+      const existingItems = await firestore()
+        .collection('myList')
+        .where('itemId', '==', itemId)
+        .limit(1)
+        .get();
+
+      if (!existingItems.empty) {
+        console.log('Item already exists in the list!');
         return;
       }
 
       const addItemResponse = await firestore().collection('myList').add({
-        itemId: itemId,
+        itemId: itemIdTv,
         userId: userId,
         itemType: 'tv',
         itemImage: imageUrl,
