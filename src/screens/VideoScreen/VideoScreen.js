@@ -704,7 +704,7 @@ const VideoScreen = ({route, navigation}) => {
         .get();
 
       if (!existingItemQuery.empty) {
-        console.log('Item already added to My List!');
+        Alert.alert('Item already added to My List!');
         return;
       }
 
@@ -715,7 +715,7 @@ const VideoScreen = ({route, navigation}) => {
         .get();
 
       if (!existingItems.empty) {
-        console.log('Item already exists in the list!');
+        Alert.alert('Item already exists in the list!');
         return;
       }
 
@@ -735,7 +735,7 @@ const VideoScreen = ({route, navigation}) => {
       });
 
       if (addItemResponse) {
-        console.log('Movie added to My List successfully!');
+        Alert.alert('Movie added to My List successfully!');
       }
     } catch (error) {
       console.error('Error adding movie to My List:', error);
@@ -800,7 +800,7 @@ const VideoScreen = ({route, navigation}) => {
         .get();
 
       if (!existingItemQuery.empty) {
-        console.log('Item already added to My List!');
+        Alert.alert('Item already added to My List!');
         return;
       }
 
@@ -811,7 +811,7 @@ const VideoScreen = ({route, navigation}) => {
         .get();
 
       if (!existingItems.empty) {
-        console.log('Item already exists in the list!');
+        Alert.alert('Item already exists in the list!');
         return;
       }
 
