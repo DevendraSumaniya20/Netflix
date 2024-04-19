@@ -274,8 +274,8 @@ const VideoScreen = ({route, navigation}) => {
           }}>
           <CustomIconText
             color={Color.WHITE}
-            text={'My list'}
-            iconName={'plus'}
+            text={myListItem ? 'Saved' : 'My List'}
+            iconName={myListItem ? 'check' : 'plus'}
             type={'AntDesign'}
             onPress={addToMyMovieList}
             moreStyles={{alignItems: 'center'}}
@@ -320,7 +320,7 @@ const VideoScreen = ({route, navigation}) => {
           />
         </View>
         <Tab value={index} onChange={setIndex}>
-          <Tab.Item title="Collection" />
+          <Tab.Item title="Collection" style={{backgroundColor: 'blue'}} />
           <Tab.Item title="More Like This" />
         </Tab>
 
@@ -537,8 +537,8 @@ const VideoScreen = ({route, navigation}) => {
           }}>
           <CustomIconText
             color={Color.WHITE}
-            text={'My list'}
-            iconName={'plus'}
+            text={myListItem ? 'Saved' : 'My List'}
+            iconName={myListItem ? 'check' : 'plus'}
             type={'AntDesign'}
             onPress={addToMyTvShowList}
             moreStyles={{alignItems: 'center'}}
