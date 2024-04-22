@@ -358,22 +358,29 @@ const VideoScreen = ({route, navigation}) => {
                 justifyContent: 'space-evenly',
               }}>
               {similar.map((movie, index) => (
-                <Image
+                <TouchableOpacity
                   key={index}
-                  source={{
-                    uri: movie.poster_path
-                      ? image500(movie.poster_path)
-                      : ImagePath.NOIMAGE,
-                  }}
-                  style={[
-                    styles.similarimages,
-                    {
-                      marginBottom:
-                        index % 2 === 1 ? moderateVerticalScale(8) : 0,
-                    },
-                  ]}
-                  resizeMode="cover"
-                />
+                  onPress={() => {
+                    navigation.push(navigationString.VIDEOSCREEN, {
+                      movie: movie,
+                    });
+                  }}>
+                  <Image
+                    source={{
+                      uri: movie.poster_path
+                        ? image500(movie.poster_path)
+                        : ImagePath.NOIMAGE,
+                    }}
+                    style={[
+                      styles.similarimages,
+                      {
+                        marginBottom:
+                          index % 2 === 1 ? moderateVerticalScale(8) : 0,
+                      },
+                    ]}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
               ))}
 
               {myListItem &&

@@ -46,7 +46,11 @@ const HomeScreen = ({navigation, route}) => {
                   <TouchableOpacity activeOpacity={0.5}>
                     <Text style={styles.topViewTextStyle}>Movies</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity activeOpacity={0.5}>
+                  <TouchableOpacity
+                    activeOpacity={0.5}
+                    onPress={() => {
+                      navigation.navigate(navigationString.MYLISTSCREEN);
+                    }}>
                     <Text style={styles.topViewTextStyle}>My List</Text>
                   </TouchableOpacity>
                 </View>

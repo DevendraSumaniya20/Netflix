@@ -54,7 +54,12 @@ const MyListScreen = ({navigation, route}) => {
   const renderItem = ({item}) => (
     <TouchableOpacity onPress={() => navigateToVideoScreen(item)}>
       <View style={styles.viewpic}>
-        <Image source={{uri: image342(item.itemImage)}} style={styles.image} />
+        <Image
+          source={{uri: image342(item.itemImage)}}
+          style={styles.image}
+          resizeMethod="auto"
+          resizeMode="contain"
+        />
         {/* <Text style={styles.title}>{item.title}</Text> */}
       </View>
     </TouchableOpacity>
@@ -78,7 +83,15 @@ const MyListScreen = ({navigation, route}) => {
         <View style={styles.contentContainer}>
           {list.length === 0 ? (
             isLoading ? (
-              <ActivityIndicator size="large" color={Color.RED} />
+              <ActivityIndicator
+                size="large"
+                color={Color.RED}
+                style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flex: 1,
+                }}
+              />
             ) : (
               <Text style={styles.emptyListMessage}>
                 Please add some data to the list first.

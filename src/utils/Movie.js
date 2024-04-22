@@ -26,8 +26,7 @@ const movieCreditsEndPoint = id =>
 const movieSimilarEndPoint = id =>
   `${apiBaseUrl}/movie/${id}/similar?api_key=${MOVIEAPIKEY}`;
 
-const movieSearchEndPoint = `${apiBaseUrl}/movie/search/movie?api_key=${MOVIEAPIKEY}`;
-//
+const movieSearchEndPoint = `${apiBaseUrl}/search/movie?api_key=${MOVIEAPIKEY}`;
 
 // TvShows EndsPoints
 const trendingTvEndPoint = `${apiBaseUrl}/trending/tv/day?api_key=${MOVIEAPIKEY}`;
