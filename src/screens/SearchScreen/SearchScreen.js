@@ -19,12 +19,12 @@ import {
 import navigationString from '../../constants/navigationString';
 import CustomIcon from '../../components/CustomIcon';
 import {debounce} from 'lodash';
-import {fetchMovieSearch, image342} from '../../utils/Movie';
+import {fetchMovieSearch, fetchTvSearch, image342} from '../../utils/Movie';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SearchScreen = ({navigation}) => {
+const SearchScreen = ({navigation, route}) => {
   const [value, setValue] = useState('');
-  const [result, setResults] = useState([]);
+  const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
 
@@ -49,7 +49,7 @@ const SearchScreen = ({navigation}) => {
         searchValue,
         ...suggestions.filter(suggestion => suggestion !== searchValue),
       ];
-      // Limit suggestions to 5
+
       updatedSuggestions = updatedSuggestions.slice(0, 5);
       await AsyncStorage.setItem(
         'searchSuggestions',
@@ -61,25 +61,46 @@ const SearchScreen = ({navigation}) => {
     }
   };
 
-  const handleSearch = useCallback(
-    async searchValue => {
+  const handleSearch = useCallback(async searchValue => {
+    setLoading(true);
+    try {
+      let movieResults = [];
+      let tvResults = [];
+
       if (searchValue) {
-        setLoading(true);
-        const searchResults = await fetchMovieSearch({
+        movieResults = await fetchMovieSearch({
           query: searchValue,
           include_adult: false,
           language: 'en-US',
           page: 1,
         });
-        setResults(searchResults.results);
-        setLoading(false);
-        saveSearchToSuggestions(searchValue);
-      } else {
-        setResults([]);
       }
-    },
-    [saveSearchToSuggestions],
-  );
+
+      if (searchValue) {
+        tvResults = await fetchTvSearch({
+          query: searchValue,
+          language: 'en-US',
+          page: 1,
+        });
+      }
+
+      const combinedResults = [
+        ...movieResults.results.map(item => ({...item, mediaType: 'movie'})),
+        ...tvResults.results.map(item => ({...item, mediaType: 'tv'})),
+      ];
+      console.log(combinedResults);
+
+      setResults(combinedResults);
+
+      if (searchValue) {
+        saveSearchToSuggestions(searchValue);
+      }
+    } catch (error) {
+      console.error('Error fetching search results:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const debouncedSearch = useCallback(
     debounce(searchValue => handleSearch(searchValue), 300),
@@ -89,7 +110,7 @@ const SearchScreen = ({navigation}) => {
   const onChangeText = text => {
     setValue(text);
     debouncedSearch(text);
-    // Save suggestion when user removes the value
+
     if (!text) {
       saveSearchToSuggestions(value);
     }
@@ -117,18 +138,20 @@ const SearchScreen = ({navigation}) => {
         <View style={styles.centeredView}>
           <ActivityIndicator size={'large'} color={Color.RED} />
         </View>
-      ) : result.length > 0 ? (
+      ) : results && results.length > 0 ? (
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollViewContent}>
-          <Text style={styles.resultText}>Results ({result.length})</Text>
+          <Text style={styles.resultText}>Results ({results.length})</Text>
           <View>
-            {result.map((item, index) => (
+            {results.map((item, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.itemContainer}
                 onPress={() =>
-                  navigation.navigate(navigationString.VIDEOSCREEN, {item})
+                  navigation.navigate(navigationString.VIDEOSCREEN, {
+                    searchItem: item.id,
+                  })
                 }>
                 {item.poster_path ? (
                   <Image
@@ -143,10 +166,17 @@ const SearchScreen = ({navigation}) => {
                   <Text style={styles.noImageText}>No Image</Text>
                 )}
                 <Text style={styles.title}>
-                  {item.title && item.title.length > 22
-                    ? `${item.title.slice(0, 22)}...`
-                    : item.title}
+                  {item.original_title
+                    ? item.original_title.length > 22
+                      ? `${item.original_title.slice(0, 19)}...`
+                      : item.original_title
+                    : item.original_name
+                      ? item.original_name.length > 22
+                        ? `${item.original_name.slice(0, 19)}...`
+                        : item.original_name
+                      : ''}
                 </Text>
+
                 <CustomIcon
                   color={Color.WHITE}
                   name={'play-circle-outline'}
@@ -159,11 +189,12 @@ const SearchScreen = ({navigation}) => {
         </ScrollView>
       ) : (
         <View style={styles.centeredView}>
-          <Text style={styles.centeredText}>Please search something</Text>
+          <Text style={styles.centeredText}>
+            Please search your favorite shows and movies
+          </Text>
         </View>
       )}
 
-      {/* Suggestions */}
       {suggestions.length > 0 && (
         <View style={styles.suggestionsContainer}>
           <Text style={styles.suggestionsTitle}>Suggestions</Text>

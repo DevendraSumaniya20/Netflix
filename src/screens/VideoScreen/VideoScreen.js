@@ -5,7 +5,6 @@ import {
   Image,
   Platform,
   SafeAreaView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -30,12 +29,13 @@ import {
 } from 'react-native-size-matters';
 import CustomIconText from '../../components/CustomIconText';
 import CustomIcon from '../../components/CustomIcon';
-import {Avatar, Tab, ListItem} from '@rneui/themed';
+import {Avatar, Tab} from '@rneui/themed';
 import navigationString from '../../constants/navigationString';
 import {auth} from '../../config/Firebase';
 import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import ImagePath from '../../constants/ImagePath';
+import styles from './Styles';
 
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
@@ -48,9 +48,7 @@ const VideoScreen = ({route, navigation}) => {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const {itemIdMovie, itemIdTv, myListItem} = route.params;
-
-  keyExtractor = (item, index) => index.toString();
+  const {itemIdMovie, itemIdTv, myListItem, searchItem} = route.params;
 
   useEffect(() => {
     const currentUser = auth.currentUser;
@@ -67,37 +65,75 @@ const VideoScreen = ({route, navigation}) => {
 
   useEffect(() => {
     fetchData();
-  }, [itemIdMovie, itemIdTv, myListItem]);
+  }, [itemIdMovie, itemIdTv, myListItem, searchItem]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       if (itemIdMovie || myListItem) {
-        const movieDetails = await fetchMovieDetails(itemIdMovie || myListItem);
-        const credits = await fetchMovieCredits(itemIdMovie || myListItem);
-        const similarData = await fetchMovieSimilar(itemIdMovie || myListItem);
-        setMovieData(movieDetails);
-        setCast(credits.cast);
-        setGenres(movieDetails.genres);
-        setSimilar(similarData?.results || []);
-      }
+        await fetchAndSetMovieData(itemIdMovie || myListItem);
+      } else if (itemIdTv) {
+        await fetchAndSetTvData(itemIdTv);
+      } else if (searchItem) {
+        let movieDetails = await fetchMovieDetails(searchItem);
+        let credits, similarData;
 
-      if (itemIdTv) {
-        const tvData = await fetchTvDetails(itemIdTv || myListItem);
+        if (movieDetails) {
+          credits = await fetchMovieCredits(searchItem);
+          similarData = await fetchMovieSimilar(searchItem);
+        } else {
+          let tvDetails = await fetchTvDetails(searchItem);
 
-        const credits = await fetchTvCredits(itemIdTv || myListItem);
-        const similarTvData = await fetchTvSimilar(itemIdTv || myListItem);
-        setTvShowData(tvData);
-        setCast(credits.cast);
-        setGenres(tvData.genres);
-        setSimilar(similarTvData?.results || []);
+          if (tvDetails) {
+            movieDetails = tvDetails;
+            credits = await fetchTvCredits(searchItem);
+            similarData = await fetchTvSimilar(searchItem);
+          }
+        }
+
+        if (movieDetails) {
+          setMovieData(movieDetails);
+          setCast(credits.cast);
+          setGenres(movieDetails.genres);
+          setSimilar(similarData?.results || []);
+        } else {
+          console.error('No data found for search item:', searchItem);
+        }
       }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
-  }, [itemIdMovie, itemIdTv, myListItem]);
+  }, [itemIdMovie, itemIdTv, myListItem, searchItem]);
+
+  const fetchAndSetMovieData = async itemId => {
+    const movieDetails = await fetchMovieDetails(itemId);
+    if (movieDetails) {
+      const credits = await fetchMovieCredits(itemId);
+      const similarData = await fetchMovieSimilar(itemId);
+      setMovieData(movieDetails);
+      setCast(credits.cast);
+      setGenres(movieDetails.genres);
+      setSimilar(similarData?.results || []);
+    } else {
+      console.error('No data found for movie with ID:', itemId);
+    }
+  };
+
+  const fetchAndSetTvData = async itemId => {
+    const tvData = await fetchTvDetails(itemId);
+    if (tvData) {
+      const credits = await fetchTvCredits(itemId);
+      const similarTvData = await fetchTvSimilar(itemId);
+      setTvShowData(tvData);
+      setCast(credits.cast);
+      setGenres(tvData.genres);
+      setSimilar(similarTvData?.results || []);
+    } else {
+      console.error('No data found for TV show with ID:', itemId);
+    }
+  };
 
   const toggleModal = () => {
     setShowModal(!showModal);
@@ -845,6 +881,8 @@ const VideoScreen = ({route, navigation}) => {
     }
   };
 
+  keyExtractor = (item, index) => index.toString();
+
   return (
     <View style={styles.container}>
       {loading ? (
@@ -977,134 +1015,3 @@ const VideoScreen = ({route, navigation}) => {
 };
 
 export default VideoScreen;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Color.BLACK,
-  },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: Color.BLACK,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  marginContainer: {
-    marginHorizontal: moderateScale(16),
-  },
-  poster: {
-    width: moderateScale(350),
-    height: moderateVerticalScale(350),
-    borderRadius: moderateScale(10),
-  },
-  textStyle: {
-    color: Color.WHITE,
-  },
-  titleTextStyle: {
-    color: Color.WHITE,
-    fontSize: scale(24),
-    fontWeight: '800',
-    marginVertical: moderateScale(8),
-  },
-  runtimeTextStyle: {
-    color: Color.WHITE,
-    marginHorizontal: moderateScale(6),
-    fontSize: scale(14),
-  },
-  releasedateTextStyle: {
-    color: Color.WHITE,
-    fontSize: scale(14),
-  },
-  underAgeTextStyle: {
-    backgroundColor: Color.GRAY,
-    marginHorizontal: moderateScale(24),
-    color: Color.WHITE,
-    paddingHorizontal: moderateScale(8),
-    fontSize: scale(14),
-    textAlign: 'center',
-  },
-  overviewTextStyle: {
-    color: Color.WHITE,
-    fontSize: scale(14),
-    marginVertical: moderateVerticalScale(8),
-  },
-  StarringOverViewTextStyle: {color: Color.WHITE, fontSize: scale(14)},
-  StarringTextStyle: {
-    color: Color.GRAY,
-    fontSize: scale(14),
-    marginBottom: moderateVerticalScale(2),
-  },
-  moreTextStyle: {color: Color.WHITE, fontSize: scale(14)},
-  directorTextStyle: {color: Color.WHITE, fontSize: scale(14)},
-  companyTextStyle: {color: Color.GRAY, fontSize: scale(14)},
-
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Color.BLACK_50,
-  },
-  modalContent: {
-    backgroundColor: Color.BLACK_90,
-    borderRadius: moderateScale(10),
-    padding: moderateScale(20),
-    maxHeight: '100%',
-    alignItems: 'center',
-    width: '100%',
-  },
-
-  modalTitle: {
-    fontSize: scale(18),
-    fontWeight: 'bold',
-    marginBottom: moderateVerticalScale(10),
-    color: Color.WHITE,
-  },
-  modalItem: {
-    fontSize: scale(16),
-    marginBottom: moderateVerticalScale(8),
-    color: Color.GRAY_2,
-  },
-  genreItemContainer: {
-    width: '100%',
-  },
-  closeButtonContainer: {
-    alignItems: 'center',
-    marginRight: moderateScale(-300),
-    marginTop: moderateScale(16),
-    flexDirection: 'row',
-  },
-  tabButton: {
-    paddingHorizontal: moderateScale(20),
-    paddingVertical: moderateVerticalScale(10),
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabButtonText: {
-    fontSize: scale(16),
-    fontWeight: 'bold',
-    color: Color.WHITE,
-  },
-  activeTab: {
-    borderBottomColor: 'blue',
-  },
-
-  similarimages: {
-    width: moderateScale(130),
-    height: moderateVerticalScale(150),
-    borderRadius: moderateScale(10),
-    marginBottom: moderateVerticalScale(8),
-  },
-  collectionImageTv: {
-    width: moderateScale(160),
-    height: moderateVerticalScale(150),
-    borderRadius: moderateScale(10),
-    marginBottom: moderateVerticalScale(8),
-  },
-  collectionImageMovie: {
-    width: moderateScale(160),
-    height: moderateVerticalScale(150),
-    borderRadius: moderateScale(10),
-    marginBottom: moderateVerticalScale(8),
-  },
-});

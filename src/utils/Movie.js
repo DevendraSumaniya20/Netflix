@@ -39,6 +39,7 @@ const tvCreditsEndPoint = id =>
 
 const tvSimilarEndPoint = id =>
   `${apiBaseUrl}/tv/${id}/similar?api_key=${MOVIEAPIKEY}`;
+const tvSearchEndPoint = `${apiBaseUrl}/search/tv?api_key=${MOVIEAPIKEY}`;
 
 //
 
@@ -149,4 +150,8 @@ export const fetchTvSimilar = id => {
 
 export const fetchAccountDetails = id => {
   return apiCall(accountEndPoint, id);
+};
+
+export const fetchTvSearch = params => {
+  return apiCall(tvSearchEndPoint, params);
 };

@@ -5,4 +5,5 @@ export default {
   DEMOIMAGE: require('../assets/images/demoImage.png'),
   DEMOIMAGE_2: require('../assets/images/demoImage2.jpeg'),
   NOIMAGE: require('../assets/images/noImage.jpeg'),
+  NOSEARCH: require('../assets/images/noSearch.jpg'),
 };
