@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import CustomSearch from '../../components/CustomSearch';
 import Color from '../../constants/Color';
@@ -20,49 +21,17 @@ import navigationString from '../../constants/navigationString';
 import CustomIcon from '../../components/CustomIcon';
 import {debounce} from 'lodash';
 import {fetchMovieSearch, fetchTvSearch, image342} from '../../utils/Movie';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomIconText from '../../components/CustomIconText';
 
 const SearchScreen = ({navigation, route}) => {
   const [value, setValue] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
-
-  useEffect(() => {
-    loadSuggestions();
-  }, []);
-
-  const loadSuggestions = async () => {
-    try {
-      const storedSuggestions = await AsyncStorage.getItem('searchSuggestions');
-      if (storedSuggestions !== null) {
-        setSuggestions(JSON.parse(storedSuggestions));
-      }
-    } catch (error) {
-      console.error('Error loading suggestions:', error);
-    }
-  };
-
-  const saveSearchToSuggestions = async searchValue => {
-    try {
-      let updatedSuggestions = [
-        searchValue,
-        ...suggestions.filter(suggestion => suggestion !== searchValue),
-      ];
-
-      updatedSuggestions = updatedSuggestions.slice(0, 5);
-      await AsyncStorage.setItem(
-        'searchSuggestions',
-        JSON.stringify(updatedSuggestions),
-      );
-      setSuggestions(updatedSuggestions);
-    } catch (error) {
-      console.error('Error saving search suggestion:', error);
-    }
-  };
+  const [error, setError] = useState(null);
 
   const handleSearch = useCallback(async searchValue => {
     setLoading(true);
+    setError(null);
     try {
       let movieResults = [];
       let tvResults = [];
@@ -85,18 +54,20 @@ const SearchScreen = ({navigation, route}) => {
       }
 
       const combinedResults = [
-        ...movieResults.results.map(item => ({...item, mediaType: 'movie'})),
-        ...tvResults.results.map(item => ({...item, mediaType: 'tv'})),
+        ...(movieResults.results || []).map(item => ({
+          ...item,
+          mediaType: 'movie',
+        })),
+        ...(tvResults.results || []).map(item => ({
+          ...item,
+          mediaType: 'tv',
+        })),
       ];
-      console.log(combinedResults);
 
       setResults(combinedResults);
-
-      if (searchValue) {
-        saveSearchToSuggestions(searchValue);
-      }
     } catch (error) {
       console.error('Error fetching search results:', error);
+      setError('Error fetching search results. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -110,10 +81,6 @@ const SearchScreen = ({navigation, route}) => {
   const onChangeText = text => {
     setValue(text);
     debouncedSearch(text);
-
-    if (!text) {
-      saveSearchToSuggestions(value);
-    }
   };
 
   return (
@@ -128,15 +95,20 @@ const SearchScreen = ({navigation, route}) => {
           onChangeText={onChangeText}
           type={'Fontisto'}
           type2={'MaterialIcons'}
-          placeholder={'Search for a show, movie, genre, etc.'}
+          placeholder={'Search your fav Movie or Show'}
           placeholderTextColor={Color.WHITE}
           value={value}
         />
       </View>
-
       {loading ? (
+        <ActivityIndicator
+          color={Color.RED}
+          size="large"
+          style={styles.loadingIndicator}
+        />
+      ) : error ? (
         <View style={styles.centeredView}>
-          <ActivityIndicator size={'large'} color={Color.RED} />
+          <Text style={styles.errorText}>{error}</Text>
         </View>
       ) : results && results.length > 0 ? (
         <ScrollView
@@ -176,7 +148,6 @@ const SearchScreen = ({navigation, route}) => {
                         : item.original_name
                       : ''}
                 </Text>
-
                 <CustomIcon
                   color={Color.WHITE}
                   name={'play-circle-outline'}
@@ -189,28 +160,24 @@ const SearchScreen = ({navigation, route}) => {
         </ScrollView>
       ) : (
         <View style={styles.centeredView}>
-          <Text style={styles.centeredText}>
-            Please search your favorite shows and movies
-          </Text>
+          {value ? (
+            <>
+              <CustomIconText
+                color={Color.WHITE}
+                iconName={'emoji-sad'}
+                type={'Entypo'}
+                flexDirection={'column'}
+                size={scale(26)}
+              />
+              <Text style={styles.resultText}>Oops, no results found</Text>
+            </>
+          ) : (
+            <Text style={styles.resultText}>
+              Let's check what's new arrive in {'\n'}This weekend!
+            </Text>
+          )}
         </View>
       )}
-
-      {suggestions.length > 0 && (
-        <View style={styles.suggestionsContainer}>
-          <Text style={styles.suggestionsTitle}>Suggestions</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {suggestions.map((suggestion, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.suggestionItem}
-                onPress={() => onChangeText(suggestion)}>
-                <Text style={styles.suggestionText}>{suggestion}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
       <SafeAreaView style={styles.marginContainer}></SafeAreaView>
     </View>
   );
@@ -237,6 +204,8 @@ const styles = StyleSheet.create({
   resultText: {
     color: Color.WHITE,
     marginBottom: moderateScale(8),
+    fontSize: scale(16),
+    fontWeight: 'bold',
   },
   itemContainer: {
     flexDirection: 'row',
@@ -262,6 +231,8 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Color.WHITE,
     marginLeft: moderateScale(10),
+    fontSize: scale(14),
+    fontWeight: 'bold',
   },
   centeredView: {
     flex: 1,
@@ -271,22 +242,14 @@ const styles = StyleSheet.create({
   centeredText: {
     color: Color.WHITE,
   },
-  suggestionsContainer: {
-    marginTop: moderateVerticalScale(10),
-    paddingHorizontal: moderateVerticalScale(16),
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    fontSize: scale(16),
   },
-  suggestionsTitle: {
-    color: Color.WHITE,
-    marginBottom: moderateScale(8),
-  },
-  suggestionItem: {
-    backgroundColor: Color.GRAY,
-    paddingVertical: moderateVerticalScale(8),
-    paddingHorizontal: moderateVerticalScale(12),
-    borderRadius: moderateScale(20),
-    marginRight: moderateScale(8),
-  },
-  suggestionText: {
-    color: Color.WHITE,
+  loadingIndicator: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
   },
 });

@@ -69,7 +69,8 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     color: Color.WHITE,
-    fontSize: scale(14),
+    fontSize: scale(16),
     marginLeft: moderateScale(8),
+    fontWeight: '600',
   },
 });
