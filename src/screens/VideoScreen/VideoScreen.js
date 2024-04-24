@@ -226,7 +226,7 @@ const VideoScreen = ({route, navigation}) => {
           iconName={'arrow-collapse-down'}
           type={'MaterialCommunityIcons'}
           onPress={() => {
-            Alert.alert('download');
+            addToMyMovieDownloadList();
           }}
           size={scale(25)}
           flexDirection="row"
@@ -348,7 +348,7 @@ const VideoScreen = ({route, navigation}) => {
             iconName={'download-multiple'}
             type={'MaterialCommunityIcons'}
             onPress={() => {
-              Alert.alert('hello');
+              addToMyMovieDownloadList();
             }}
             size={scale(25)}
             moreStyles={{alignItems: 'center'}}
@@ -524,7 +524,7 @@ const VideoScreen = ({route, navigation}) => {
           iconName={'arrow-collapse-down'}
           type={'MaterialCommunityIcons'}
           onPress={() => {
-            Alert.alert('download');
+            addToMyTvShowDownloadList();
           }}
           size={scale(25)}
           flexDirection="row"
@@ -618,7 +618,7 @@ const VideoScreen = ({route, navigation}) => {
             iconName={'download-multiple'}
             type={'MaterialCommunityIcons'}
             onPress={() => {
-              Alert.alert('hello');
+              addToMyTvShowDownloadList();
             }}
             size={scale(25)}
             moreStyles={{alignItems: 'center'}}
@@ -785,6 +785,97 @@ const VideoScreen = ({route, navigation}) => {
     }
   };
 
+  const addToMyMovieDownloadList = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        console.error('No authenticated user found');
+        return;
+      }
+
+      const movieDetails = await fetchMovieDetails(itemIdMovie);
+      const castDetails = await fetchMovieCredits(itemIdMovie);
+      const similarMovieDetails = await fetchMovieSimilar(itemIdMovie);
+
+      let cast = [];
+      if (castDetails.cast && castDetails.cast.length > 0) {
+        cast = castDetails.cast.map(member => ({
+          name: member.name,
+          // profilePath: member.profile_path,
+        }));
+      }
+
+      let productionCompanies = [];
+      if (
+        movieDetails.production_companies &&
+        movieDetails.production_companies.length > 0
+      ) {
+        productionCompanies = movieDetails.production_companies.map(
+          company => company.name,
+        );
+      }
+
+      let imageUrl = movieDetails.poster_path || movieDetails.backdrop_path;
+      let title = movieDetails.title || movieDetails.original_title;
+      let overview = movieDetails.overview;
+      let genres = movieDetails.genres
+        ? movieDetails.genres.map(genre => genre.name).join(', ')
+        : 'Genres unavailable';
+      let runtime = `${Math.floor(movieDetails.runtime / 60)}h ${movieDetails.runtime % 60}m`;
+      let releaseYear = movieDetails.release_date
+        ? movieDetails.release_date.split('-')[0]
+        : 'Release date unavailable';
+
+      const itemId = uuid.v4();
+
+      const userId = currentUser.uid;
+
+      const existingItemQuery = await firestore()
+        .collection('myDownloads')
+        .where('itemId', '==', itemIdMovie)
+        .where('userId', '==', userId)
+        .limit(1)
+        .get();
+
+      if (!existingItemQuery.empty) {
+        Alert.alert('Item already added to My List!');
+        return;
+      }
+
+      const existingItems = await firestore()
+        .collection('myDownloads')
+        .where('itemId', '==', itemId)
+        .limit(1)
+        .get();
+
+      if (!existingItems.empty) {
+        Alert.alert('Item already exists in the list!');
+        return;
+      }
+
+      const addItemResponse = await firestore().collection('myDownloads').add({
+        itemId: itemIdMovie,
+        userId: userId,
+        itemType: 'movie',
+        itemImage: imageUrl,
+        title: title,
+        overview: overview,
+        genres: genres,
+        cast: cast,
+        runtime: runtime,
+        releaseYear: releaseYear,
+        similarMovies: similarMovieDetails.results,
+        productionCompanies: productionCompanies,
+      });
+
+      if (addItemResponse) {
+        Alert.alert('Movie added to My List successfully!');
+      }
+    } catch (error) {
+      console.error('Error adding movie to My List:', error);
+    }
+  };
+
   const addToMyTvShowList = async () => {
     try {
       const currentUser = auth.currentUser;
@@ -859,6 +950,102 @@ const VideoScreen = ({route, navigation}) => {
       }
 
       const addItemResponse = await firestore().collection('myList').add({
+        itemId: itemIdTv,
+        userId: userId,
+        itemType: 'tv',
+        itemImage: imageUrl,
+        title: title,
+        overview: overview,
+        genres: genres,
+        cast: cast,
+        runtime: runtime,
+        releaseYear: releaseYear,
+        similarMovies: similarMovieDetails.results,
+        productionCompanies: productionCompanies,
+      });
+
+      if (addItemResponse) {
+        Alert.alert('Tv Show added to My List successfully!');
+      }
+    } catch (error) {
+      console.error('Error adding Tv show to My List:', error);
+    }
+  };
+
+  const addToMyTvShowDownloadList = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        console.error('No authenticated user found');
+        return;
+      }
+
+      const tvShowDetails = await fetchTvDetails(itemIdTv);
+      const castDetails = await fetchTvCredits(itemIdTv);
+      const similarMovieDetails = await fetchTvSimilar(itemIdTv);
+
+      let cast = [];
+      if (castDetails.cast && castDetails.cast.length > 0) {
+        cast = castDetails.cast.map(member => ({
+          name: member.name,
+          // profilePath: member.profile_path,
+        }));
+      }
+
+      let productionCompanies = [];
+      if (
+        tvShowDetails.production_companies &&
+        tvShowDetails.production_companies.length > 0
+      ) {
+        productionCompanies = tvShowDetails.production_companies.map(
+          company => company.name,
+        );
+      }
+
+      let imageUrl = tvShowDetails.poster_path || tvShowDetails.backdrop_path;
+      let title = tvShowDetails.name || tvShowDetails.original_name;
+      let overview = tvShowDetails.overview;
+      let genres = tvShowDetails.genres
+        ? tvShowDetails.genres.map(genre => genre.name).join(', ')
+        : 'Genres unavailable';
+
+      let runtime =
+        tvShowDetails.episode_run_time &&
+        tvShowDetails.episode_run_time.length > 0
+          ? `${Math.floor(tvShowDetails.episode_run_time[0] / 60)}h ${tvShowDetails.episode_run_time[0] % 60}m`
+          : 'N/A';
+      let releaseYear = tvShowDetails.first_air_date
+        ? tvShowDetails.first_air_date.split('-')[0]
+        : 'Release date unavailable';
+
+      const itemId = uuid.v4();
+
+      const userId = currentUser.uid;
+
+      const existingItemQuery = await firestore()
+        .collection('myDownloads')
+        .where('itemId', '==', itemIdTv)
+        .where('userId', '==', userId)
+        .limit(1)
+        .get();
+
+      if (!existingItemQuery.empty) {
+        Alert.alert('Item already added to My List!');
+        return;
+      }
+
+      const existingItems = await firestore()
+        .collection('myDownloads')
+        .where('itemId', '==', itemId)
+        .limit(1)
+        .get();
+
+      if (!existingItems.empty) {
+        Alert.alert('Item already exists in the list!');
+        return;
+      }
+
+      const addItemResponse = await firestore().collection('myDownloads').add({
         itemId: itemIdTv,
         userId: userId,
         itemType: 'tv',
