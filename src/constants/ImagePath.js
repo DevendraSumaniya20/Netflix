@@ -7,4 +7,12 @@ export default {
   NOIMAGE: require('../assets/images/noImage.jpeg'),
   NOSEARCH: require('../assets/images/noSearch.jpg'),
   NOTFOUND: require('../assets/images/404.png'),
+  FORWARD: require('../assets/images/forward.png'),
+  BACKWARD: require('../assets/images/backward.png'),
+  PLAY: require('../assets/images/play-button.png'),
+  PAUSE: require('../assets/images/pause.png'),
+  FULLSIZE: require('../assets/images/full-size.png'),
+  MINIMIZE: require('../assets/images/minimize.png'),
+  MEDIUMVOLUME: require('../assets/images/medium-volume.png'),
+  MUTE: require('../assets/images/mute.png'),
 };

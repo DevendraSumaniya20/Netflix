@@ -18,7 +18,6 @@ import {
   fetchTvCredits,
   fetchTvDetails,
   fetchTvSimilar,
-  image342,
   image500,
 } from '../../utils/Movie';
 import Color from '../../constants/Color';
@@ -36,6 +35,7 @@ import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import ImagePath from '../../constants/ImagePath';
 import styles from './Styles';
+import CustomVideo from '../../components/CustomVideo';
 
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
@@ -47,6 +47,8 @@ const VideoScreen = ({route, navigation}) => {
   const [similar, setSimilar] = useState([]);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isVideoPlaying, setVideoPlaying] = useState(false);
+  const [showControls, setShowControls] = useState(true);
 
   const {itemIdMovie, itemIdTv, myListItem, searchItem} = route.params;
 
@@ -139,6 +141,19 @@ const VideoScreen = ({route, navigation}) => {
     setShowModal(!showModal);
   };
 
+  useEffect(() => {
+    let timer;
+    if (isVideoPlaying) {
+      timer = setTimeout(() => {
+        setShowControls(false);
+      }, 2000);
+    } else {
+      setShowControls(true);
+    }
+
+    return () => clearTimeout(timer);
+  }, [isVideoPlaying, setShowControls]);
+
   const renderItemMovie = () => {
     if (!movieData) return null;
 
@@ -157,15 +172,57 @@ const VideoScreen = ({route, navigation}) => {
 
     return (
       <View style={{flex: 1}}>
-        <Image
-          source={{
-            uri: myListItem
-              ? image500(myListItem.itemImage)
-              : image500(movieData.backdrop_path || movieData.poster_path),
-          }}
-          style={styles.poster}
-          resizeMode="cover"
-        />
+        <View style={{position: 'relative'}}>
+          {isVideoPlaying ? (
+            <CustomVideo
+              uri={
+                myListItem
+                  ? myListItem.itemVideo
+                  : require('../../assets/video/videoplayback.mp4')
+              }
+              isVisible={isVideoPlaying}
+              isPaused={!isVideoPlaying}
+            />
+          ) : (
+            <Image
+              source={{
+                uri: myListItem
+                  ? image500(myListItem.itemImage)
+                  : image500(movieData.backdrop_path || movieData.poster_path),
+              }}
+              style={styles.poster}
+              resizeMode="cover"
+            />
+          )}
+
+          {showControls && (
+            <TouchableOpacity
+              onPress={() => {
+                if (isVideoPlaying) {
+                  setVideoPlaying(false);
+                } else {
+                  setVideoPlaying(true);
+                }
+              }}
+              style={{
+                position: 'absolute',
+                justifyContent: 'center',
+                alignItems: 'center',
+                top: '50%',
+                left: '50%',
+                transform: [{translateX: -30}, {translateY: -30}],
+                width: moderateScale(60),
+                height: moderateVerticalScale(60),
+              }}>
+              <CustomIcon
+                color={Color.RED}
+                name={isVideoPlaying ? 'pause' : 'play'}
+                size={scale(60)}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
         <Text style={styles.titleTextStyle}>
           {myListItem
             ? myListItem.title
