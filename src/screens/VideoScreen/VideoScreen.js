@@ -520,13 +520,57 @@ const VideoScreen = ({route, navigation}) => {
 
     return (
       <View style={{flex: 1}}>
-        <Image
-          source={{
-            uri: image500(tvShowData.backdrop_path || tvShowData.poster_path),
-          }}
-          style={styles.poster}
-          resizeMode="cover"
-        />
+        <View style={{position: 'relative'}}>
+          {isVideoPlaying ? (
+            <CustomVideo
+              uri={
+                myListItem
+                  ? myListItem.itemVideo
+                  : require('../../assets/video/videoplayback.mp4')
+              }
+              isVisible={isVideoPlaying}
+              isPaused={!isVideoPlaying}
+            />
+          ) : (
+            <Image
+              source={{
+                uri: image500(
+                  tvShowData.backdrop_path || tvShowData.poster_path,
+                ),
+              }}
+              style={styles.poster}
+              resizeMode="cover"
+            />
+          )}
+
+          {showControls && (
+            <TouchableOpacity
+              onPress={() => {
+                if (isVideoPlaying) {
+                  setVideoPlaying(false);
+                } else {
+                  setVideoPlaying(true);
+                }
+              }}
+              style={{
+                position: 'absolute',
+                justifyContent: 'center',
+                alignItems: 'center',
+                top: '50%',
+                left: '50%',
+                transform: [{translateX: -30}, {translateY: -30}],
+                width: moderateScale(60),
+                height: moderateVerticalScale(60),
+              }}>
+              <CustomIcon
+                color={Color.RED}
+                name={isVideoPlaying ? 'pause' : 'play'}
+                size={scale(60)}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
         <Text style={styles.titleTextStyle}>
           {tvShowData.name || tvShowData.original_name}
         </Text>
@@ -554,11 +598,15 @@ const VideoScreen = ({route, navigation}) => {
 
         <CustomIconText
           color={Color.BLACK}
-          text={'Play'}
-          iconName={'play'}
+          text={isVideoPlaying ? 'Pause' : 'Play'}
+          iconName={isVideoPlaying ? 'pause' : 'play'}
           type={'FontAwesome5'}
           onPress={() => {
-            Alert.alert('hello');
+            if (isVideoPlaying) {
+              setVideoPlaying(false);
+            } else {
+              setVideoPlaying(true);
+            }
           }}
           size={scale(25)}
           flexDirection="row"

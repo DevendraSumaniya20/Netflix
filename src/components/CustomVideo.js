@@ -25,7 +25,7 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
   const [fullscreen, setFullscreen] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [locked, setLocked] = useState(false);
-  const [showControls, setShowControls] = useState(false); // State to control visibility of controls
+  const [showControls, setShowControls] = useState(false);
 
   const videoRef = useRef(null);
   let controlTimeout;
@@ -40,13 +40,13 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
 
   const handlePlayPause = () => {
     setPaused(!paused);
-    setShowControls(true); // Show controls when user interacts with play/pause button
+    setShowControls(true);
     setControlTimeout();
   };
 
   const handleSeek = seekTime => {
     videoRef.current.seek(seekTime);
-    setShowControls(true); // Show controls when user interacts with seek bar
+    setShowControls(true);
     setControlTimeout();
   };
 
@@ -73,20 +73,20 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
   const handleBackward = () => {
     const newTime = currentTime - 10;
     handleSeek(newTime < 0 ? 0 : newTime);
-    setShowControls(true); // Show controls when user interacts with backward button
+    setShowControls(true);
     setControlTimeout();
   };
 
   const handleForward = () => {
     const newTime = currentTime + 10;
     handleSeek(newTime > duration ? duration : newTime);
-    setShowControls(true); // Show controls when user interacts with forward button
+    setShowControls(true);
     setControlTimeout();
   };
 
   const handleLock = () => {
     setLocked(!locked);
-    setShowControls(true); // Show controls when user interacts with lock button
+    setShowControls(true);
     setControlTimeout();
   };
 
@@ -94,7 +94,7 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
     setVolume(volume === 1.0 ? 0.0 : 1.0);
     const message = volume === 1.0 ? 'Volume muted' : 'Volume unmuted';
     Alert.alert('Volume', message);
-    setShowControls(true); // Show controls when user interacts with volume button
+    setShowControls(true);
     setControlTimeout();
   };
 
@@ -109,7 +109,7 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
     clearTimeout(controlTimeout);
     controlTimeout = setTimeout(() => {
       setShowControls(false);
-    }, 3000); // Hide controls after 3 seconds of inactivity
+    }, 2500);
   };
 
   return (
