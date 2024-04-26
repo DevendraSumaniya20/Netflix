@@ -15,4 +15,8 @@ export default {
   MINIMIZE: require('../assets/images/minimize.png'),
   MEDIUMVOLUME: require('../assets/images/medium-volume.png'),
   MUTE: require('../assets/images/mute.png'),
+  SPEED: require('../assets/images/speedometer.png'),
+  LOCK: require('../assets/images/unlock.png'),
+  UNLOCK: require('../assets/images/unlocked.png'),
+  SUBTITLE: require('../assets/images/subtitle.png'),
 };

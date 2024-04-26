@@ -252,11 +252,15 @@ const VideoScreen = ({route, navigation}) => {
 
         <CustomIconText
           color={Color.BLACK}
-          text={'Play'}
-          iconName={'play'}
+          text={isVideoPlaying ? 'Pause' : 'Play'}
+          iconName={isVideoPlaying ? 'pause' : 'play'}
           type={'FontAwesome5'}
           onPress={() => {
-            Alert.alert('hello');
+            if (isVideoPlaying) {
+              setVideoPlaying(false);
+            } else {
+              setVideoPlaying(true);
+            }
           }}
           size={scale(25)}
           flexDirection="row"
