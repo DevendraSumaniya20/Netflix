@@ -15,6 +15,7 @@ import Slider from '@react-native-community/slider';
 import Color from '../constants/Color';
 import {moderateScale, moderateVerticalScale} from 'react-native-size-matters';
 import ImagePath from '../constants/ImagePath';
+import Orientation from 'react-native-orientation-locker';
 
 const CustomVideo = ({uri, isVisible, isPaused}) => {
   const [buffering, setBuffering] = useState(false);
@@ -61,6 +62,11 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
   };
 
   const toggleFullscreen = () => {
+    if (fullscreen) {
+      Orientation.lockToPortrait();
+    } else {
+      Orientation.lockToLandscape();
+    }
     setFullscreen(!fullscreen);
     StatusBar.setHidden(fullscreen);
   };
@@ -109,7 +115,7 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
     clearTimeout(controlTimeout);
     controlTimeout = setTimeout(() => {
       setShowControls(false);
-    }, 2500);
+    }, 3000);
   };
 
   return (
@@ -139,8 +145,9 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
           </View>
         )}
 
-        {showControls && ( // Show controls only when showControls is true
-          <View style={styles.controls}>
+        {showControls && (
+          <View
+            style={[styles.controls, fullscreen && styles.fullscreenControls]}>
             <View style={styles.topControls}>
               <TouchableOpacity
                 style={styles.controlButton}
@@ -174,7 +181,11 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
               onSlidingComplete={handleSeek}
               thumbStyle={styles.seekThumb}
             />
-            <View style={styles.timeContainer}>
+            <View
+              style={[
+                styles.timeContainer,
+                {justifyContent: fullscreen ? 'space-around' : 'space-between'},
+              ]}>
               <Text style={styles.durationText}>{formatTime(currentTime)}</Text>
               <Text style={styles.durationText}>{formatTime(duration)}</Text>
             </View>
@@ -271,22 +282,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: '100%',
+    justifyContent: 'space-between',
+  },
+  fullscreenControls: {
+    backgroundColor: 'transparent',
   },
   topControls: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
-    paddingTop: moderateVerticalScale(16),
+    paddingVertical: moderateVerticalScale(16),
   },
   timeContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
     paddingHorizontal: moderateScale(8),
   },
   controlGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
   },
   controlButton: {
     justifyContent: 'center',
@@ -315,6 +330,7 @@ const styles = StyleSheet.create({
   },
   bottomControls: {
     marginTop: moderateVerticalScale(8),
+    paddingBottom: moderateVerticalScale(8),
   },
   icon: {
     width: moderateScale(26),
