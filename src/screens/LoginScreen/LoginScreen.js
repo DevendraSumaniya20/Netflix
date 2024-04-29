@@ -87,10 +87,8 @@ const LoginScreen = ({navigation}) => {
   const checkTokens = async () => {
     try {
       const accessToken = await AsyncStorage.getItem('accessToken');
-      // console.log('Access Token:', accessToken);
 
       if (accessToken) {
-        // console.log('Navigating to HomeScreen...');
         navigation.navigate(navigationString.BOTTOMTABNAVIGATION);
       } else {
         console.log('Access Token not found. Navigating to LoginScreen...');
@@ -126,9 +124,15 @@ const LoginScreen = ({navigation}) => {
       await AsyncStorage.setItem('idToken', idToken);
       await AsyncStorage.setItem('accessToken', idToken);
 
+      const userId = uuid.v4();
+
+      // Extract username from email
+      const username = email.split('@')[0];
+
       await userRef.set({
-        userId: user.uid,
+        userId: userId,
         email: user.email,
+        username: username,
       });
 
       navigation.navigate(navigationString.BOTTOMTABNAVIGATION, {

@@ -30,7 +30,6 @@ const CustomComingSoonMovie = ({onPress}) => {
     try {
       const response = await fetchUpcomingMovies();
       setData(response?.results || []);
-      console.log(response?.results);
     } catch (error) {
       console.error('Error fetching upcoming movies:', error);
     } finally {

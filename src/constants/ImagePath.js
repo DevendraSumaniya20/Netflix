@@ -19,4 +19,5 @@ export default {
   LOCK: require('../assets/images/unlock.png'),
   UNLOCK: require('../assets/images/unlocked.png'),
   SUBTITLE: require('../assets/images/subtitle.png'),
+  NETFLIXPROFILE: require('../assets/images/netflix_Profile.jpeg'),
 };
