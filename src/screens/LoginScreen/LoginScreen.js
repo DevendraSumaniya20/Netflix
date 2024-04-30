@@ -17,7 +17,6 @@ import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import Color from '../../constants/Color';
 import CustomBorderComponent from '../../components/CustomBorderComponent';
-import {CheckBox} from '@rneui/themed';
 import navigationString from '../../constants/navigationString';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {signInWithEmailAndPassword} from 'firebase/auth';
@@ -25,6 +24,11 @@ import styles from './Styles';
 import {auth} from '../../config/Firebase';
 import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
+import Animated, {
+  Easing,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 const LoginScreen = ({navigation}) => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -34,6 +38,8 @@ const LoginScreen = ({navigation}) => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(100);
 
   const handleEmailChange = useCallback(text => {
     setEmail(text);
@@ -45,6 +51,8 @@ const LoginScreen = ({navigation}) => {
 
   useEffect(() => {
     checkTokens();
+    opacity.value = withTiming(1, {duration: 500});
+    translateY.value = withTiming(0, {duration: 500, easing: Easing.ease});
   }, []);
 
   const validateInputs = useCallback(() => {
@@ -151,7 +159,14 @@ const LoginScreen = ({navigation}) => {
     <ImageBackground
       source={ImagePath.BACKGROUND}
       style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <View style={styles.container}>
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            opacity: opacity,
+            transform: [{translateY: translateY}],
+          },
+        ]}>
         <View style={styles.innerContainerStyle}>
           <Text
             style={{
@@ -213,31 +228,6 @@ const LoginScreen = ({navigation}) => {
             }}>
             <Text style={styles.forgotpasswordTextStyle}>Forgot Password?</Text>
           </TouchableOpacity>
-          {/* <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: moderateVerticalScale(8),
-              alignSelf: 'flex-start',
-            }}>
-            <CheckBox
-              containerStyle={{
-                backgroundColor: 'transparent',
-                borderWidth: 0,
-                padding: 0,
-              }}
-              checked={checked}
-              checkedColor={Color.WHITE}
-              onPress={toggleCheckbox}
-              size={26}
-            />
-            <TouchableOpacity activeOpacity={0.8} onPress={toggleCheckbox}>
-              <Text style={{color: Color.WHITE, fontSize: scale(16)}}>
-                Remember me
-              </Text>
-            </TouchableOpacity>
-          </View> */}
-
           <View
             style={{
               alignSelf: 'flex-start',
@@ -283,7 +273,7 @@ const LoginScreen = ({navigation}) => {
             </View>
           </View>
         </View>
-      </View>
+      </Animated.View>
     </ImageBackground>
   );
 };

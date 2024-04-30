@@ -28,7 +28,7 @@ import {
 } from 'react-native-size-matters';
 import CustomIconText from '../../components/CustomIconText';
 import CustomIcon from '../../components/CustomIcon';
-import {Avatar, Tab} from '@rneui/themed';
+import {Tab} from '@rneui/themed';
 import navigationString from '../../constants/navigationString';
 import {auth} from '../../config/Firebase';
 import firestore from '@react-native-firebase/firestore';

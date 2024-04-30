@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
+import * as Animatable from 'react-native-animatable';
+
 import Color from '../../constants/Color';
 import ImagePath from '../../constants/ImagePath';
 import CustomIconText from '../../components/CustomIconText';
@@ -27,6 +29,32 @@ import {
 import styles from './Styles';
 
 const HomeScreen = ({navigation, route}) => {
+  const [animated, setAnimated] = useState(false);
+  const zoomInRef = useRef(null);
+
+  useEffect(() => {
+    setAnimated(true);
+  }, []);
+
+  const zoomIn = () => {
+    if (zoomInRef.current) {
+      zoomInRef.current.zoomIn(800);
+    }
+  };
+
+  const handleItemPress = (item, navigationFunc) => {
+    zoomIn();
+    navigationFunc(item.id);
+  };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      setAnimated(false);
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   return (
     <>
       <ScrollView
@@ -60,7 +88,11 @@ const HomeScreen = ({navigation, route}) => {
               </ImageBackground>
             </View>
             <View style={styles.marginView}>
-              <View style={styles.centerView}>
+              <Animatable.View
+                animation={animated ? 'fadeInUp' : null}
+                duration={1000}
+                style={styles.centerView}
+                ref={zoomInRef}>
                 <CustomIconText
                   color={Color.WHITE}
                   text={'My list'}
@@ -106,55 +138,67 @@ const HomeScreen = ({navigation, route}) => {
                   }}
                   size={scale(25)}
                 />
-              </View>
+              </Animatable.View>
               <View style={styles.secondMainView}>
                 <Text style={styles.mainHeader}>Now Playing</Text>
                 <CustomNowPlayingMovies
-                  onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemIdMovie: item.id,
-                    });
-                  }}
+                  onPress={item =>
+                    handleItemPress(item, itemId =>
+                      navigation.navigate(navigationString.VIDEOSCREEN, {
+                        itemIdMovie: itemId,
+                      }),
+                    )
+                  }
                 />
                 <Text style={styles.mainHeader}>Trending Movies</Text>
                 <CustomTrendingMovies
-                  onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemIdMovie: item.id,
-                    });
-                  }}
+                  onPress={item =>
+                    handleItemPress(item, itemId =>
+                      navigation.navigate(navigationString.VIDEOSCREEN, {
+                        itemIdMovie: itemId,
+                      }),
+                    )
+                  }
                 />
                 <Text style={styles.mainHeader}>Trending TvShows</Text>
                 <CustomTrandingTvShow
-                  onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemIdTv: item.id,
-                    });
-                  }}
+                  onPress={item =>
+                    handleItemPress(item, itemId =>
+                      navigation.navigate(navigationString.VIDEOSCREEN, {
+                        itemIdTv: itemId,
+                      }),
+                    )
+                  }
                 />
                 <Text style={styles.mainHeader}>Top Rated Movie</Text>
                 <CustomTopRatedMovies
-                  onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemIdMovie: item.id,
-                    });
-                  }}
+                  onPress={item =>
+                    handleItemPress(item, itemId =>
+                      navigation.navigate(navigationString.VIDEOSCREEN, {
+                        itemIdMovie: itemId,
+                      }),
+                    )
+                  }
                 />
                 <Text style={styles.mainHeader}>Top Rated TvShows</Text>
                 <CustomTopRatedTvShows
-                  onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemIdTv: item.id,
-                    });
-                  }}
+                  onPress={item =>
+                    handleItemPress(item, itemId =>
+                      navigation.navigate(navigationString.VIDEOSCREEN, {
+                        itemIdTv: itemId,
+                      }),
+                    )
+                  }
                 />
                 <Text style={styles.mainHeader}>Most Popular</Text>
                 <CustomPopularMovies
-                  onPress={item => {
-                    navigation.navigate(navigationString.VIDEOSCREEN, {
-                      itemIdMovie: item.id,
-                    });
-                  }}
+                  onPress={item =>
+                    handleItemPress(item, itemId =>
+                      navigation.navigate(navigationString.VIDEOSCREEN, {
+                        itemIdMovie: itemId,
+                      }),
+                    )
+                  }
                 />
               </View>
             </View>

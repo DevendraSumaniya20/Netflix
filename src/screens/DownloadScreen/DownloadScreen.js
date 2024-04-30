@@ -19,6 +19,7 @@ import CustomIcon from '../../components/CustomIcon';
 import {image342} from '../../utils/Movie';
 import navigationString from '../../constants/navigationString';
 import {auth} from '../../config/Firebase';
+import * as Animatable from 'react-native-animatable';
 
 const DownloadScreen = ({route, navigation}) => {
   const [list, setList] = useState([]);
@@ -51,24 +52,30 @@ const DownloadScreen = ({route, navigation}) => {
     navigation.navigate(navigationString.VIDEOSCREEN, {myListItem: item});
   };
 
-  const renderItem = ({item}) => (
-    <TouchableOpacity onPress={() => navigateToVideoScreen(item)}>
-      <View style={styles.renderItemView}>
-        <Image
-          source={{uri: image342(item.itemImage)}}
-          style={styles.image}
-          resizeMethod="auto"
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>{item.title}</Text>
-        <CustomIcon
-          color={Color.WHITE}
-          name={'chevron-right'}
-          size={scale(24)}
-          type="Feather"
-        />
-      </View>
-    </TouchableOpacity>
+  const renderItem = ({item, index}) => (
+    <Animatable.View animation="fadeInDown" delay={index * 100} duration={1000}>
+      <TouchableOpacity onPress={() => navigateToVideoScreen(item)}>
+        <View style={styles.renderItemView}>
+          <Image
+            source={{uri: image342(item.itemImage)}}
+            style={styles.image}
+            resizeMethod="auto"
+            resizeMode="contain"
+          />
+          <Text style={styles.title}>
+            {item.title.length > 12
+              ? `${item.title.substring(0, 12)}...`
+              : item.title}
+          </Text>
+          <CustomIcon
+            color={Color.WHITE}
+            name={'chevron-right'}
+            size={scale(24)}
+            type="Feather"
+          />
+        </View>
+      </TouchableOpacity>
+    </Animatable.View>
   );
 
   return (
@@ -159,7 +166,7 @@ const styles = StyleSheet.create({
     marginBottom: moderateVerticalScale(10),
   },
   title: {
-    fontSize: scale(18),
+    fontSize: scale(14),
     marginTop: moderateVerticalScale(10),
     textAlign: 'center',
     color: Color.WHITE,

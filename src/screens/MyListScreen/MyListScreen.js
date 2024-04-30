@@ -19,6 +19,7 @@ import CustomIcon from '../../components/CustomIcon';
 import {image342} from '../../utils/Movie';
 import navigationString from '../../constants/navigationString';
 import {auth} from '../../config/Firebase';
+import * as Animatable from 'react-native-animatable';
 
 const MyListScreen = ({navigation, route}) => {
   const [list, setList] = useState([]);
@@ -51,18 +52,20 @@ const MyListScreen = ({navigation, route}) => {
     navigation.navigate(navigationString.VIDEOSCREEN, {myListItem: item});
   };
 
-  const renderItem = ({item}) => (
-    <TouchableOpacity onPress={() => navigateToVideoScreen(item)}>
-      <View style={styles.viewpic}>
-        <Image
-          source={{uri: image342(item.itemImage)}}
-          style={styles.image}
-          resizeMethod="auto"
-          resizeMode="contain"
-        />
-        {/* <Text style={styles.title}>{item.title}</Text> */}
-      </View>
-    </TouchableOpacity>
+  const renderItem = ({item, index}) => (
+    <Animatable.View animation="fadeInDown" delay={index * 100} duration={1000}>
+      <TouchableOpacity onPress={() => navigateToVideoScreen(item)}>
+        <View style={styles.viewpic}>
+          <Image
+            source={{uri: image342(item.itemImage)}}
+            style={styles.image}
+            resizeMethod="auto"
+            resizeMode="contain"
+          />
+          {/* <Text style={styles.title}>{item.title}</Text> */}
+        </View>
+      </TouchableOpacity>
+    </Animatable.View>
   );
 
   return (
@@ -81,22 +84,16 @@ const MyListScreen = ({navigation, route}) => {
           <View style={{width: scale(24)}} />
         </View>
         <View style={styles.contentContainer}>
-          {list.length === 0 ? (
-            isLoading ? (
-              <ActivityIndicator
-                size="large"
-                color={Color.RED}
-                style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flex: 1,
-                }}
-              />
-            ) : (
-              <Text style={styles.emptyListMessage}>
-                Please add some data to the list first.
-              </Text>
-            )
+          {isLoading ? (
+            <ActivityIndicator
+              size="large"
+              color={Color.RED}
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: 1,
+              }}
+            />
           ) : (
             <FlatList
               data={list}
@@ -150,12 +147,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: scale(18),
     marginTop: moderateVerticalScale(10),
-    textAlign: 'center',
-    color: Color.WHITE,
-  },
-  emptyListMessage: {
-    fontSize: scale(16),
-    marginTop: moderateVerticalScale(20),
     textAlign: 'center',
     color: Color.WHITE,
   },

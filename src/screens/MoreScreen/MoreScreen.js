@@ -29,6 +29,7 @@ import {
   setEmail,
   setPassword,
 } from '../../redux/Slices/authSlice';
+import * as Animatable from 'react-native-animatable';
 
 const MoreScreen = ({navigation, route}) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -164,15 +165,20 @@ const MoreScreen = ({navigation, route}) => {
         text: 'Yes',
         onPress: async () => {
           try {
-            await auth.signOut();
-            await AsyncStorage.clear();
-            dispatch(clearCredentials());
-            dispatch(setEmail(''));
-            dispatch(setPassword(''));
+            setIsLoading(true);
+            setTimeout(async () => {
+              await auth.signOut();
+              await AsyncStorage.clear();
+              dispatch(clearCredentials());
+              dispatch(setEmail(''));
+              dispatch(setPassword(''));
+              setIsLoading(false);
 
-            navigation.push(navigationString.LOGINSCREEN);
+              navigation.push(navigationString.LOGINSCREEN);
+            }, 1000);
           } catch (error) {
             console.error('Error during logout:', error);
+            setIsLoading(false);
           }
         },
       },
@@ -180,70 +186,72 @@ const MoreScreen = ({navigation, route}) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.marginContainer}>
-        {isLoading ? (
-          <ActivityIndicator
-            size="large"
-            color={Color.RED}
-            style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}
-          />
-        ) : (
-          <View style={styles.profileContainer}>
+    <Animatable.View
+      animation="fadeIn"
+      duration={1000}
+      style={styles.container}>
+      {isLoading ? (
+        <ActivityIndicator
+          size="large"
+          color={Color.RED}
+          style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}
+        />
+      ) : (
+        <View style={styles.marginContainer}>
+          <Animatable.View
+            animation="slideInUp"
+            duration={1000}
+            style={styles.profileContainer}>
             <TouchableOpacity onPress={editProfile}>
               <View style={styles.itemContainer}>
                 <Image style={styles.image} source={selectedImage} />
                 <Text style={styles.email}>{list[0]?.username}</Text>
               </View>
             </TouchableOpacity>
+          </Animatable.View>
+
+          <View style={styles.listItemContainer}>
+            <TouchableOpacity
+              style={styles.listItem}
+              onPress={() => {
+                navigation.navigate(navigationString.MYLISTSCREEN);
+              }}>
+              <CustomIcon
+                color={Color.WHITE}
+                name={'checkmark-sharp'}
+                size={scale(34)}
+              />
+              <Text style={styles.listItemText}>My List</Text>
+            </TouchableOpacity>
           </View>
-        )}
+          <View>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuText}>App Settings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuText}>Account</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuText}>Help</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                signOut();
+              }}>
+              <Text style={styles.menuText}>Sign Out</Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* <TouchableOpacity style={styles.editButton} onPress={editProfile}>
-          <Text style={styles.editButtonText}>Edit Profile</Text>
-        </TouchableOpacity> */}
-
-        <View style={styles.listItemContainer}>
-          <TouchableOpacity
-            style={styles.listItem}
-            onPress={() => {
-              navigation.navigate(navigationString.MYLISTSCREEN);
-            }}>
-            <CustomIcon
-              color={Color.WHITE}
-              name={'checkmark-sharp'}
-              size={scale(34)}
-            />
-            <Text style={styles.listItemText}>My List</Text>
-          </TouchableOpacity>
+          <EditProfileModal
+            modalVisible={modalVisible}
+            setModalVisible={setModalVisible}
+            requestCameraPermission={requestCameraPermission}
+            requestGalleryPermission={requestGalleryPermission}
+          />
         </View>
-        <View>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuText}>App Settings</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuText}>Account</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuText}>Help</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => {
-              signOut();
-            }}>
-            <Text style={styles.menuText}>Sign Out</Text>
-          </TouchableOpacity>
-        </View>
-
-        <EditProfileModal
-          modalVisible={modalVisible}
-          setModalVisible={setModalVisible}
-          requestCameraPermission={requestCameraPermission}
-          requestGalleryPermission={requestGalleryPermission}
-        />
-      </View>
-    </View>
+      )}
+    </Animatable.View>
   );
 };
 
@@ -269,7 +277,10 @@ const EditProfileModal = ({
           }}>
           <CustomIcon name="x" size={24} color={Color.WHITE} type="Feather" />
         </TouchableOpacity>
-        <View style={styles.modalContent}>
+        <Animatable.View
+          animation="slideInUp"
+          duration={1000}
+          style={styles.modalContent}>
           <TouchableOpacity
             style={styles.modalItem}
             onPress={() => {
@@ -288,7 +299,7 @@ const EditProfileModal = ({
             <CustomIcon name="images" size={24} color={Color.WHITE} />
             <Text style={styles.modalItemText}>Get image from Gallery</Text>
           </TouchableOpacity>
-        </View>
+        </Animatable.View>
       </View>
     </Modal>
   );

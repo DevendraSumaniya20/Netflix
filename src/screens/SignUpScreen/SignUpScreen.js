@@ -11,6 +11,11 @@ import styles from './Styles';
 import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import ImagePath from '../../constants/ImagePath';
+import Animated, {
+  Easing,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 const SignUpScreen = ({navigation}) => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -18,6 +23,9 @@ const SignUpScreen = ({navigation}) => {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(100);
 
   const handleEmailChange = useCallback(text => {
     setEmail(text);
@@ -30,6 +38,8 @@ const SignUpScreen = ({navigation}) => {
   }, []);
 
   useEffect(() => {
+    opacity.value = withTiming(1, {duration: 500});
+    translateY.value = withTiming(0, {duration: 500, easing: Easing.ease});
     checkTokens();
   }, []);
 
@@ -128,7 +138,7 @@ const SignUpScreen = ({navigation}) => {
     <ImageBackground
       source={ImagePath.BACKGROUND_2}
       style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <View style={styles.container}>
+      <Animated.View style={styles.container}>
         <View style={styles.innerContainerStyle}>
           <Text style={styles.title}>Sign Up</Text>
           <View style={styles.inputContainerStyle}>
@@ -163,7 +173,7 @@ const SignUpScreen = ({navigation}) => {
             textStyle={{color: Color.WHITE}}
           />
         </View>
-      </View>
+      </Animated.View>
     </ImageBackground>
   );
 };
