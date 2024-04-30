@@ -24,11 +24,12 @@ import * as Animatable from 'react-native-animatable';
 const MyListScreen = ({navigation, route}) => {
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEmpty, setIsEmpty] = useState(false);
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(user => {
       if (user) {
-        firestore()
+        const unsubscribeSnapshot = firestore()
           .collection('myList')
           .where('userId', '==', user.uid)
           .onSnapshot(snapshot => {
@@ -38,8 +39,15 @@ const MyListScreen = ({navigation, route}) => {
             }));
 
             setIsLoading(false);
-            setList(data);
+            if (data.length === 0) {
+              setIsEmpty(true);
+            } else {
+              setIsEmpty(false);
+              setList(data);
+            }
           });
+
+        return () => unsubscribeSnapshot();
       } else {
         console.error('No authenticated user found');
       }
@@ -62,7 +70,6 @@ const MyListScreen = ({navigation, route}) => {
             resizeMethod="auto"
             resizeMode="contain"
           />
-          {/* <Text style={styles.title}>{item.title}</Text> */}
         </View>
       </TouchableOpacity>
     </Animatable.View>
@@ -94,6 +101,10 @@ const MyListScreen = ({navigation, route}) => {
                 flex: 1,
               }}
             />
+          ) : isEmpty ? (
+            <Text style={styles.emptyText}>
+              You need to add first some Movie and Shows
+            </Text>
           ) : (
             <FlatList
               data={list}
@@ -115,7 +126,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Color.BLACK,
   },
-
   marginContainer: {
     marginHorizontal: moderateScale(16),
     marginTop: moderateVerticalScale(4),
@@ -143,12 +153,11 @@ const styles = StyleSheet.create({
   flatListContainer: {
     marginTop: moderateVerticalScale(8),
   },
-
-  title: {
-    fontSize: scale(18),
-    marginTop: moderateVerticalScale(10),
-    textAlign: 'center',
+  emptyText: {
+    fontSize: scale(16),
     color: Color.WHITE,
+    textAlign: 'center',
+    marginTop: moderateVerticalScale(20),
   },
 });
 

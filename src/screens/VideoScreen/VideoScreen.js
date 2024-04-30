@@ -1004,7 +1004,7 @@ const VideoScreen = ({route, navigation}) => {
       });
 
       if (addItemResponse) {
-        Alert.alert('Movie added to My List successfully!');
+        Alert.alert('Movie added to My Downloads successfully!');
       }
     } catch (error) {
       console.error('Error adding movie to My List:', error);
@@ -1196,7 +1196,7 @@ const VideoScreen = ({route, navigation}) => {
       });
 
       if (addItemResponse) {
-        Alert.alert('Tv Show added to My List successfully!');
+        Alert.alert('Tv Show added to My Downloads successfully!');
       }
     } catch (error) {
       console.error('Error adding Tv show to My List:', error);

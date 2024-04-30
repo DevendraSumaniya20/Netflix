@@ -51,11 +51,13 @@ const MoreScreen = ({navigation, route}) => {
           const data = userData.data();
           setList([data]);
 
-          const profileImage = data.profileImage;
-          if (profileImage) {
-            setSelectedImage({uri: profileImage});
+          if (data.profileImage) {
+            setSelectedImage({uri: data.profileImage});
           } else {
-            setSelectedImage(ImagePath.NETFLIXPROFILE);
+            const userImage = await fetchUserImage(user.uid);
+            setSelectedImage(
+              userImage ? {uri: userImage} : ImagePath.NETFLIXPROFILE,
+            );
           }
 
           setIsLoading(false);
@@ -70,6 +72,16 @@ const MoreScreen = ({navigation, route}) => {
 
     return () => unsubscribeAuth();
   }, []);
+
+  const fetchUserImage = async userId => {
+    try {
+      const userData = await firestore().collection('Users').doc(userId).get();
+      return userData.data()?.profileImage;
+    } catch (error) {
+      console.error('Error fetching user image: ', error);
+      return null;
+    }
+  };
 
   const requestCameraPermission = async () => {
     try {
