@@ -35,7 +35,6 @@ const MoreScreen = ({navigation, route}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [list, setList] = useState([]);
   const [selectedImage, setSelectedImage] = useState(ImagePath.NETFLIXPROFILE);
-  const [isEditingImage, setIsEditingImage] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
   const dispatch = useDispatch();
@@ -48,22 +47,24 @@ const MoreScreen = ({navigation, route}) => {
             .collection('Users')
             .doc(user.uid)
             .get();
-          const data = userData.data();
-          setList([data]);
-
-          if (data.profileImage) {
-            setSelectedImage({uri: data.profileImage});
+          if (userData.exists) {
+            const data = userData.data();
+            setList([data]);
+            const profileImage = data.profileImage;
+            if (profileImage) {
+              setSelectedImage({uri: profileImage});
+            } else {
+              setSelectedImage(ImagePath.NETFLIXPROFILE);
+            }
           } else {
-            const userImage = await fetchUserImage(user.uid);
-            setSelectedImage(
-              userImage ? {uri: userImage} : ImagePath.NETFLIXPROFILE,
-            );
+            // console.error('User data does not exist');
+            setSelectedImage(ImagePath.NETFLIXPROFILE);
           }
-
           setIsLoading(false);
         } catch (error) {
-          console.error('Error fetching user data: ', error);
+          // console.error('Error fetching user data: ', error);
           setIsLoading(false);
+          Alert.alert('Error', 'Failed to fetch user data');
         }
       } else {
         setIsLoading(false);
@@ -72,16 +73,6 @@ const MoreScreen = ({navigation, route}) => {
 
     return () => unsubscribeAuth();
   }, []);
-
-  const fetchUserImage = async userId => {
-    try {
-      const userData = await firestore().collection('Users').doc(userId).get();
-      return userData.data()?.profileImage;
-    } catch (error) {
-      console.error('Error fetching user image: ', error);
-      return null;
-    }
-  };
 
   const requestCameraPermission = async () => {
     try {
@@ -149,7 +140,6 @@ const MoreScreen = ({navigation, route}) => {
       }
 
       setSelectedImage({uri: selectedImage.path});
-      setIsEditingImage(true);
 
       const user = auth.currentUser;
       if (user) {
@@ -374,19 +364,9 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: moderateVerticalScale(560),
+    top: moderateVerticalScale(20),
     right: moderateScale(20),
     zIndex: 1,
-  },
-  editButton: {
-    backgroundColor: Color.RED,
-    padding: moderateScale(10),
-    borderRadius: moderateScale(5),
-  },
-  editButtonText: {
-    color: Color.WHITE,
-    fontSize: moderateScale(16),
-    fontWeight: 'bold',
   },
   listItemContainer: {
     padding: moderateScale(8),
