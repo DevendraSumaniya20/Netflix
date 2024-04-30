@@ -9,6 +9,7 @@ import ForgotPasswordScreen from '../screens/ForgotPasswordScreen/ForgotPassword
 import BottomTabNavigation from './BottomTabNavigation';
 import VideoScreen from '../screens/VideoScreen/VideoScreen';
 import MyListScreen from '../screens/MyListScreen/MyListScreen';
+import FullScreen from '../screens/FullScreen/FullScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +37,10 @@ const Navigation = () => {
         <Stack.Screen
           name={navigationString.VIDEOSCREEN}
           component={VideoScreen}
+        />
+        <Stack.Screen
+          name={navigationString.FULLSCREEN}
+          component={FullScreen}
         />
         <Stack.Screen
           name={navigationString.MYLISTSCREEN}

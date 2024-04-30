@@ -11,7 +11,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Color.BLACK,
   },
   innerContainerStyle: {
     backgroundColor: Color.BLACK_50,

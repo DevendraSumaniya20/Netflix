@@ -10,4 +10,5 @@ export default {
   BOTTOMTABNAVIGATION: 'BottomTabNavigation',
   VIDEOSCREEN: 'VideoScreen',
   MYLISTSCREEN: 'MyListScreen',
+  FULLSCREEN: 'FullScreen',
 };

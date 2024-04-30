@@ -135,6 +135,12 @@ const styles = StyleSheet.create({
     borderRadius: moderateScale(10),
     marginBottom: moderateVerticalScale(8),
   },
+  image: {
+    width: moderateScale(30),
+    height: moderateVerticalScale(30),
+    borderColor: Color.RED,
+    borderWidth: 0.3,
+  },
 });
 
 export default styles;

@@ -1,5 +1,6 @@
 export default {
   BACKGROUND: require('../assets/images/background.jpeg'),
+  BACKGROUND_2: require('../assets/images/background2.jpeg'),
   LOGO: require('../assets/images/logo.png'),
   SYMBOL: require('../assets/images/symbol.png'),
   DEMOIMAGE: require('../assets/images/demoImage.png'),
@@ -20,4 +21,5 @@ export default {
   UNLOCK: require('../assets/images/unlocked.png'),
   SUBTITLE: require('../assets/images/subtitle.png'),
   NETFLIXPROFILE: require('../assets/images/netflix_Profile.jpeg'),
+  BACKARROW: require('../assets/images/backArrow.png'),
 };

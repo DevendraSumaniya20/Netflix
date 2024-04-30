@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {Text, View} from 'react-native';
+import {ImageBackground, Text, View} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
@@ -10,6 +10,7 @@ import navigationString from '../../constants/navigationString';
 import styles from './Styles';
 import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
+import ImagePath from '../../constants/ImagePath';
 
 const SignUpScreen = ({navigation}) => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -124,42 +125,46 @@ const SignUpScreen = ({navigation}) => {
   }, [email, password, emailError, passwordError, navigation]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.innerContainerStyle}>
-        <Text style={styles.title}>Sign Up</Text>
-        <View style={styles.inputContainerStyle}>
-          <CustomTextInput
-            placeholder="Email"
-            placeholderTextColor={Color.WHITE}
-            value={email}
-            onChangeText={handleEmailChange}
+    <ImageBackground
+      source={ImagePath.BACKGROUND_2}
+      style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <View style={styles.container}>
+        <View style={styles.innerContainerStyle}>
+          <Text style={styles.title}>Sign Up</Text>
+          <View style={styles.inputContainerStyle}>
+            <CustomTextInput
+              placeholder="Email"
+              placeholderTextColor={Color.WHITE}
+              value={email}
+              onChangeText={handleEmailChange}
+            />
+          </View>
+          <Text style={styles.errorText}>{emailError}</Text>
+          <View style={styles.inputContainerStyle}>
+            <CustomTextInput
+              onChangeText={handlePasswordChange}
+              placeholder="Password"
+              placeholderTextColor={Color.WHITE}
+              inputStyle={{
+                color: Color.WHITE,
+                width: '90%',
+              }}
+              rightIcon={secureTextEntry ? 'eye-off-outline' : 'eye-outline'}
+              onPressRight={() => setSecureTextEntry(!secureTextEntry)}
+              secureTextEntry={secureTextEntry}
+              rightIconStyle={{color: Color.WHITE}}
+            />
+          </View>
+          <Text style={styles.errorText}>{passwordError}</Text>
+          <CustomButton
+            text="Sign Up"
+            onPress={validateInputs}
+            inlineStyle={{backgroundColor: Color.RED}}
+            textStyle={{color: Color.WHITE}}
           />
         </View>
-        <Text style={styles.errorText}>{emailError}</Text>
-        <View style={styles.inputContainerStyle}>
-          <CustomTextInput
-            onChangeText={handlePasswordChange}
-            placeholder="Password"
-            placeholderTextColor={Color.WHITE}
-            inputStyle={{
-              color: Color.WHITE,
-              width: '90%',
-            }}
-            rightIcon={secureTextEntry ? 'eye-off-outline' : 'eye-outline'}
-            onPressRight={() => setSecureTextEntry(!secureTextEntry)}
-            secureTextEntry={secureTextEntry}
-            rightIconStyle={{color: Color.WHITE}}
-          />
-        </View>
-        <Text style={styles.errorText}>{passwordError}</Text>
-        <CustomButton
-          text="Sign Up"
-          onPress={validateInputs}
-          inlineStyle={{backgroundColor: Color.RED}}
-          textStyle={{color: Color.WHITE}}
-        />
       </View>
-    </View>
+    </ImageBackground>
   );
 };
 

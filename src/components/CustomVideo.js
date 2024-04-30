@@ -16,6 +16,8 @@ import Color from '../constants/Color';
 import {moderateScale, moderateVerticalScale} from 'react-native-size-matters';
 import ImagePath from '../constants/ImagePath';
 import Orientation from 'react-native-orientation-locker';
+import {useNavigation} from '@react-navigation/native';
+import navigationString from '../constants/navigationString';
 
 const CustomVideo = ({uri, isVisible, isPaused}) => {
   const [buffering, setBuffering] = useState(false);
@@ -27,13 +29,28 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [locked, setLocked] = useState(false);
   const [showControls, setShowControls] = useState(false);
+  const [orientation, setOrientation] = useState('PORTRAIT');
+  const [showBackArrow, setShowBackArrow] = useState(false);
 
+  const navigation = useNavigation();
   const videoRef = useRef(null);
   let controlTimeout;
 
   useEffect(() => {
     setPaused(isPaused);
   }, [isPaused]);
+
+  useEffect(() => {
+    const orientationDidChange = newOrientation => {
+      setOrientation(newOrientation);
+    };
+
+    Orientation.addOrientationListener(orientationDidChange);
+
+    return () => {
+      Orientation.removeOrientationListener(orientationDidChange);
+    };
+  }, []);
 
   const onBuffer = isBuffering => {
     setBuffering(isBuffering);
@@ -62,13 +79,19 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
   };
 
   const toggleFullscreen = () => {
-    if (fullscreen) {
-      Orientation.lockToPortrait();
-    } else {
+    if (!fullscreen) {
       Orientation.lockToLandscape();
+      StatusBar.setHidden(true);
+      setFullscreen(true);
+      setShowBackArrow(true);
+      navigation.navigate(navigationString.FULLSCREEN);
+    } else {
+      Orientation.lockToPortrait();
+      StatusBar.setHidden(false);
+      setFullscreen(false);
+      setShowBackArrow(false);
+      navigation.goBack();
     }
-    setFullscreen(!fullscreen);
-    StatusBar.setHidden(fullscreen);
   };
 
   const changePlaybackSpeed = speed => {
@@ -122,6 +145,14 @@ const CustomVideo = ({uri, isVisible, isPaused}) => {
     <TouchableWithoutFeedback onPress={toggleControls}>
       <View
         style={[styles.container, fullscreen && styles.fullscreenContainer]}>
+        {showBackArrow && (
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}>
+            <Image source={ImagePath.BACKARROW} style={styles.backIcon} />
+          </TouchableOpacity>
+        )}
+
         <Video
           source={uri}
           ref={videoRef}
@@ -295,7 +326,6 @@ const styles = StyleSheet.create({
   },
   timeContainer: {
     flexDirection: 'row',
-    // justifyContent: 'space-between',
     paddingHorizontal: moderateScale(8),
   },
   controlGroup: {
@@ -341,5 +371,16 @@ const styles = StyleSheet.create({
     color: Color.WHITE,
     fontSize: moderateScale(12),
     marginTop: moderateVerticalScale(4),
+  },
+  backButton: {
+    position: 'absolute',
+    top: moderateVerticalScale(16),
+    left: moderateScale(16),
+    zIndex: 1,
+  },
+  backIcon: {
+    width: moderateScale(30),
+    height: moderateScale(30),
+    tintColor: Color.WHITE,
   },
 });

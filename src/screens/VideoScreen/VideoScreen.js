@@ -40,17 +40,45 @@ import CustomVideo from '../../components/CustomVideo';
 const VideoScreen = ({route, navigation}) => {
   const [movieData, setMovieData] = useState(null);
   const [tvShowData, setTvShowData] = useState(null);
-
   const [cast, setCast] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [genres, setGenres] = useState([]);
   const [similar, setSimilar] = useState([]);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [isVideoPlaying, setVideoPlaying] = useState(false);
+  const [isVideoPlaying, setVideoPlaying] = useState(true);
   const [showControls, setShowControls] = useState(true);
+  const [list, setList] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(ImagePath.NETFLIXPROFILE);
 
   const {itemIdMovie, itemIdTv, myListItem, searchItem} = route.params;
+
+  useEffect(() => {
+    const unsubscribeAuth = auth.onAuthStateChanged(async user => {
+      if (user) {
+        try {
+          const userData = await firestore()
+            .collection('Users')
+            .doc(user.uid)
+            .get();
+          const data = userData.data();
+          setList([data]);
+
+          const profileImage = data.profileImage;
+          if (profileImage) {
+            setSelectedImage({uri: profileImage});
+          } else {
+            setSelectedImage(ImagePath.NETFLIXPROFILE);
+          }
+        } catch (error) {
+          console.error('Error fetching user data: ', error);
+        }
+      } else {
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
 
   useEffect(() => {
     const currentUser = auth.currentUser;
@@ -180,8 +208,6 @@ const VideoScreen = ({route, navigation}) => {
                   ? myListItem.itemVideo
                   : require('../../assets/video/videoplayback.mp4')
               }
-              isVisible={isVideoPlaying}
-              isPaused={!isVideoPlaying}
             />
           ) : (
             <Image
@@ -1226,14 +1252,11 @@ const VideoScreen = ({route, navigation}) => {
                       type="Ionicons"
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => {}}>
-                    <Avatar
-                      size={32}
-                      rounded
-                      source={{
-                        uri: 'https://comicvine.gamespot.com/a/uploads/original/11145/111457205/7969327-asta-18.jpg',
-                      }}
-                    />
+                  <TouchableOpacity
+                    onPress={() => {
+                      navigation.navigate(navigationString.MORESCREEN);
+                    }}>
+                    <Image style={styles.image} source={selectedImage} />
                   </TouchableOpacity>
                 </View>
               </View>

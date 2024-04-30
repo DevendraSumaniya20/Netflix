@@ -126,7 +126,6 @@ const LoginScreen = ({navigation}) => {
 
       const userId = uuid.v4();
 
-      // Extract username from email
       const username = email.split('@')[0];
 
       await userRef.set({
@@ -152,7 +151,6 @@ const LoginScreen = ({navigation}) => {
     <ImageBackground
       source={ImagePath.BACKGROUND}
       style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      {loading && <ActivityIndicator size="large" color={Color.WHITE} />}
       <View style={styles.container}>
         <View style={styles.innerContainerStyle}>
           <Text
@@ -187,12 +185,17 @@ const LoginScreen = ({navigation}) => {
             />
           </View>
           <Text style={styles.errorText}>{passwordError}</Text>
-          <CustomButton
-            text="Sign in"
-            onPress={validateInputs}
-            inlineStyle={{backgroundColor: Color.RED}}
-            textStyle={{color: Color.WHITE}}
-          />
+          {loading ? (
+            <ActivityIndicator size="large" color={Color.WHITE} />
+          ) : (
+            <CustomButton
+              text="Sign in"
+              onPress={validateInputs}
+              inlineStyle={{backgroundColor: Color.RED}}
+              textStyle={{color: Color.WHITE}}
+            />
+          )}
+
           <Text style={styles.orStyleText}>OR</Text>
           <CustomBorderComponent
             text={'Use a sign-in code'}
@@ -210,7 +213,7 @@ const LoginScreen = ({navigation}) => {
             }}>
             <Text style={styles.forgotpasswordTextStyle}>Forgot Password?</Text>
           </TouchableOpacity>
-          <View
+          {/* <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -233,7 +236,8 @@ const LoginScreen = ({navigation}) => {
                 Remember me
               </Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
+
           <View
             style={{
               alignSelf: 'flex-start',

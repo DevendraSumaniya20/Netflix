@@ -1,14 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {
-  StyleSheet,
-  Text,
   View,
   Image,
-  FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  PermissionsAndroid,
+  Alert,
   Modal,
+  Text,
+  StyleSheet,
+  PermissionsAndroid,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import firestore from '@react-native-firebase/firestore';
@@ -16,15 +16,28 @@ import {auth} from '../../config/Firebase';
 import ImagePicker from 'react-native-image-crop-picker';
 import CustomIcon from '../../components/CustomIcon';
 import Color from '../../constants/Color';
-import {moderateScale, moderateVerticalScale} from 'react-native-size-matters';
+import {
+  moderateScale,
+  moderateVerticalScale,
+  scale,
+} from 'react-native-size-matters';
 import ImagePath from '../../constants/ImagePath';
+import navigationString from '../../constants/navigationString';
+import {useDispatch} from 'react-redux';
+import {
+  clearCredentials,
+  setEmail,
+  setPassword,
+} from '../../redux/Slices/authSlice';
 
-const MoreScreen = () => {
+const MoreScreen = ({navigation, route}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [list, setList] = useState([]);
   const [selectedImage, setSelectedImage] = useState(ImagePath.NETFLIXPROFILE);
   const [isEditingImage, setIsEditingImage] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(async user => {
@@ -40,6 +53,8 @@ const MoreScreen = () => {
           const profileImage = data.profileImage;
           if (profileImage) {
             setSelectedImage({uri: profileImage});
+          } else {
+            setSelectedImage(ImagePath.NETFLIXPROFILE);
           }
 
           setIsLoading(false);
@@ -48,7 +63,6 @@ const MoreScreen = () => {
           setIsLoading(false);
         }
       } else {
-        console.error('No user found');
         setIsLoading(false);
       }
     });
@@ -120,8 +134,17 @@ const MoreScreen = () => {
           useFrontCamera: true,
         });
       }
+
       setSelectedImage({uri: selectedImage.path});
       setIsEditingImage(true);
+
+      const user = auth.currentUser;
+      if (user) {
+        const profileImageUrl = selectedImage.path;
+        await firestore().collection('Users').doc(user.uid).update({
+          profileImage: profileImageUrl,
+        });
+      }
     } catch (error) {
       console.error(error);
     }
@@ -131,46 +154,95 @@ const MoreScreen = () => {
     setModalVisible(true);
   };
 
-  const keyExtractor = (item, index) => index.toString();
+  const signOut = async () => {
+    Alert.alert('Confirm Logout', 'Are you sure you want to log out?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Yes',
+        onPress: async () => {
+          try {
+            await auth.signOut();
+            await AsyncStorage.clear();
+            dispatch(clearCredentials());
+            dispatch(setEmail(''));
+            dispatch(setPassword(''));
+
+            navigation.push(navigationString.LOGINSCREEN);
+          } catch (error) {
+            console.error('Error during logout:', error);
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <View style={styles.container}>
-      {isLoading ? (
-        <ActivityIndicator size="large" color={Color.RED} />
-      ) : (
-        <View>
-          <FlatList
-            data={list}
-            keyExtractor={keyExtractor}
-            renderItem={({item}) => (
-              <TouchableOpacity onPress={editProfile}>
-                <View style={styles.itemContainer}>
-                  {selectedImage.uri ? (
-                    <Image style={styles.image} source={selectedImage} />
-                  ) : (
-                    <Image
-                      style={styles.image}
-                      source={ImagePath.NETFLIXPROFILE}
-                    />
-                  )}
-                  <Text style={styles.email}>{item.username}</Text>
-                </View>
-              </TouchableOpacity>
-            )}
+      <View style={styles.marginContainer}>
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color={Color.RED}
+            style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}
           />
+        ) : (
+          <View style={styles.profileContainer}>
+            <TouchableOpacity onPress={editProfile}>
+              <View style={styles.itemContainer}>
+                <Image style={styles.image} source={selectedImage} />
+                <Text style={styles.email}>{list[0]?.username}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* <TouchableOpacity style={styles.editButton} onPress={editProfile}>
+          <Text style={styles.editButtonText}>Edit Profile</Text>
+        </TouchableOpacity> */}
+
+        <View style={styles.listItemContainer}>
+          <TouchableOpacity
+            style={styles.listItem}
+            onPress={() => {
+              navigation.navigate(navigationString.MYLISTSCREEN);
+            }}>
+            <CustomIcon
+              color={Color.WHITE}
+              name={'checkmark-sharp'}
+              size={scale(34)}
+            />
+            <Text style={styles.listItemText}>My List</Text>
+          </TouchableOpacity>
         </View>
-      )}
+        <View>
+          <TouchableOpacity style={styles.menuItem}>
+            <Text style={styles.menuText}>App Settings</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem}>
+            <Text style={styles.menuText}>Account</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem}>
+            <Text style={styles.menuText}>Help</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              signOut();
+            }}>
+            <Text style={styles.menuText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
 
-      <TouchableOpacity style={styles.editButton} onPress={editProfile}>
-        <Text style={styles.editButtonText}>Edit Profile</Text>
-      </TouchableOpacity>
-
-      <EditProfileModal
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
-        requestCameraPermission={requestCameraPermission}
-        requestGalleryPermission={requestGalleryPermission}
-      />
+        <EditProfileModal
+          modalVisible={modalVisible}
+          setModalVisible={setModalVisible}
+          requestCameraPermission={requestCameraPermission}
+          requestGalleryPermission={requestGalleryPermission}
+        />
+      </View>
     </View>
   );
 };
@@ -205,7 +277,7 @@ const EditProfileModal = ({
               requestCameraPermission();
             }}>
             <CustomIcon name="camera" size={24} color={Color.WHITE} />
-            <Text style={{color: Color.WHITE}}>Get a Camera Photo</Text>
+            <Text style={styles.modalItemText}>Get a Camera Photo</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.modalItem}
@@ -214,7 +286,7 @@ const EditProfileModal = ({
               requestGalleryPermission();
             }}>
             <CustomIcon name="images" size={24} color={Color.WHITE} />
-            <Text style={{color: Color.WHITE}}>Get image from Gallery</Text>
+            <Text style={styles.modalItemText}>Get image from Gallery</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -227,15 +299,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Color.BLACK,
   },
-  itemContainer: {},
+  marginContainer: {
+    marginHorizontal: moderateScale(16),
+  },
+  profileContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: moderateVerticalScale(30),
+  },
+  itemContainer: {
+    alignItems: 'center',
+    marginVertical: moderateVerticalScale(20),
+  },
   email: {
     color: Color.WHITE,
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(24),
+    marginVertical: moderateVerticalScale(8),
+    fontWeight: '700',
   },
   image: {
     width: moderateScale(100),
     height: moderateScale(100),
-    resizeMode: 'cover',
+    borderColor: Color.RED,
+    borderWidth: 1,
   },
   modalContainer: {
     flex: 1,
@@ -244,7 +330,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    backgroundColor: Color.BLACK,
+    backgroundColor: Color.BLACK_70,
     padding: moderateScale(20),
     width: '100%',
     borderTopLeftRadius: moderateScale(20),
@@ -256,21 +342,20 @@ const styles = StyleSheet.create({
     marginBottom: moderateVerticalScale(16),
     borderColor: Color.WHITE,
     borderWidth: 1,
-    paddingHorizontal: moderateScale(20),
-    paddingVertical: moderateVerticalScale(8),
-    borderRadius: moderateScale(20),
-    gap: 10,
+    padding: moderateScale(8),
+    borderRadius: moderateScale(12),
+  },
+  modalItemText: {
+    color: Color.WHITE,
+    marginLeft: moderateScale(10),
   },
   closeButton: {
     position: 'absolute',
-    top: moderateVerticalScale(550),
+    top: moderateVerticalScale(560),
     right: moderateScale(20),
     zIndex: 1,
   },
   editButton: {
-    position: 'absolute',
-    bottom: moderateVerticalScale(20),
-    right: moderateScale(20),
     backgroundColor: Color.RED,
     padding: moderateScale(10),
     borderRadius: moderateScale(5),
@@ -279,6 +364,29 @@ const styles = StyleSheet.create({
     color: Color.WHITE,
     fontSize: moderateScale(16),
     fontWeight: 'bold',
+  },
+  listItemContainer: {
+    padding: moderateScale(8),
+    borderBottomColor: Color.WHITE,
+    borderBottomWidth: 1,
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  listItemText: {
+    color: Color.WHITE,
+    marginLeft: moderateScale(24),
+    fontSize: scale(22),
+  },
+  menuText: {
+    color: Color.WHITE,
+    marginLeft: moderateScale(24),
+    fontSize: scale(18),
+    fontWeight: '600',
+  },
+  menuItem: {
+    marginVertical: moderateVerticalScale(8),
   },
 });
 
