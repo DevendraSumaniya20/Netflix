@@ -56,7 +56,7 @@ const CustomOnAirTv = ({onPress}) => {
           iconName={'bell-alert'}
           type={'MaterialCommunityIcons'}
           onPress={() => {
-            Alert.alert('hello');
+            Alert.alert('We will remind you when this movie is released');
           }}
           size={scale(25)}
         />
@@ -66,7 +66,7 @@ const CustomOnAirTv = ({onPress}) => {
           iconName={'share-social-outline'}
           type={'Ionicons'}
           onPress={() => {
-            Alert.alert('hello');
+            Alert.alert('Share this movie with your friends');
           }}
           size={scale(25)}
         />

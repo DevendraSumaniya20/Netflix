@@ -109,7 +109,7 @@ const HomeScreen = ({navigation, route}) => {
                   iconName={'play'}
                   type={'FontAwesome5'}
                   onPress={() => {
-                    Alert.alert('hello');
+                    Alert.alert('Play');
                   }}
                   size={scale(25)}
                   flexDirection="row"
@@ -134,7 +134,7 @@ const HomeScreen = ({navigation, route}) => {
                   iconName={'information-circle-sharp'}
                   type={'Ionicons'}
                   onPress={() => {
-                    Alert.alert('hello');
+                    Alert.alert('Info');
                   }}
                   size={scale(25)}
                 />

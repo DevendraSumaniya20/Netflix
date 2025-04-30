@@ -411,7 +411,7 @@ const VideoScreen = ({route, navigation}) => {
             iconName={'like'}
             type={'EvilIcons'}
             onPress={() => {
-              Alert.alert('hello');
+              Alert.alert('you can rate this movie');
             }}
             size={scale(25)}
             moreStyles={{alignItems: 'center'}}
@@ -423,7 +423,7 @@ const VideoScreen = ({route, navigation}) => {
             iconName={'share'}
             type={'Entypo'}
             onPress={() => {
-              Alert.alert('hello');
+              Alert.alert('share this movie with your friends');
             }}
             size={scale(25)}
             moreStyles={{alignItems: 'center'}}
@@ -729,7 +729,7 @@ const VideoScreen = ({route, navigation}) => {
             iconName={'like'}
             type={'EvilIcons'}
             onPress={() => {
-              Alert.alert('hello');
+              Alert.alert('you can rate this movie');
             }}
             size={scale(25)}
             moreStyles={{alignItems: 'center'}}
@@ -741,7 +741,7 @@ const VideoScreen = ({route, navigation}) => {
             iconName={'share'}
             type={'Entypo'}
             onPress={() => {
-              Alert.alert('hello');
+              Alert.alert('share this movie with your friends');
             }}
             size={scale(25)}
             moreStyles={{alignItems: 'center'}}
