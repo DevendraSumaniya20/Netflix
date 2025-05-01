@@ -153,8 +153,6 @@ const LoginScreen = ({navigation}) => {
     }
   };
 
-  const toggleCheckbox = () => setChecked(!checked);
-
   return (
     <ImageBackground
       source={ImagePath.BACKGROUND}
@@ -211,15 +209,6 @@ const LoginScreen = ({navigation}) => {
             />
           )}
 
-          <Text style={styles.orStyleText}>OR</Text>
-          <CustomBorderComponent
-            text={'Use a sign-in code'}
-            inLineTextStyle={{color: Color.WHITE}}
-            inLineStyle={{
-              backgroundColor: Color.GRAY,
-              marginBottom: moderateVerticalScale(8),
-            }}
-          />
           <TouchableOpacity
             style={{
               alignSelf: 'center',

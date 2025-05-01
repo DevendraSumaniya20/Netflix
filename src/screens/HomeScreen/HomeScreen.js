@@ -68,10 +68,18 @@ const HomeScreen = ({navigation, route}) => {
                 style={styles.backgroundImage}>
                 <View style={styles.topView}>
                   <Image source={ImagePath.SYMBOL} style={styles.logo} />
-                  <TouchableOpacity activeOpacity={0.5}>
+                  <TouchableOpacity
+                    activeOpacity={0.5}
+                    onPress={() => {
+                      navigation.navigate(navigationString.COMMINGSOONSCREEN);
+                    }}>
                     <Text style={styles.topViewTextStyle}>TV Shows</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity activeOpacity={0.5}>
+                  <TouchableOpacity
+                    activeOpacity={0.5}
+                    onPress={() => {
+                      navigation.navigate(navigationString.COMMINGSOONSCREEN);
+                    }}>
                     <Text style={styles.topViewTextStyle}>Movies</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -109,7 +117,7 @@ const HomeScreen = ({navigation, route}) => {
                   iconName={'play'}
                   type={'FontAwesome5'}
                   onPress={() => {
-                    Alert.alert('Play');
+                    Alert.alert('Please select a movie or tv show');
                   }}
                   size={scale(25)}
                   flexDirection="row"
@@ -134,7 +142,7 @@ const HomeScreen = ({navigation, route}) => {
                   iconName={'information-circle-sharp'}
                   type={'Ionicons'}
                   onPress={() => {
-                    Alert.alert('Info');
+                    Alert.alert('Please select a movie or tv show to get info');
                   }}
                   size={scale(25)}
                 />
